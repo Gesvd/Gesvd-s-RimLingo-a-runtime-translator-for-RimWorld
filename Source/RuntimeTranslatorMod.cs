@@ -44,6 +44,7 @@ namespace RuntimeTranslator
             BundledLibreTranslate.Initialize(content.RootDir, System.IO.Path.Combine(GenFilePaths.ConfigFolderPath, "RuntimeTranslator", "LocalEngine"));
             LongEventHandler.ExecuteWhenFinished(() =>
             {
+                ModTextScanner.ExcludeOfficialSelections(Settings);
                 GameObject updater = new GameObject("RuntimeTranslator");
                 UnityEngine.Object.DontDestroyOnLoad(updater);
                 updater.AddComponent<TranslationUpdate>();
@@ -113,7 +114,7 @@ namespace RuntimeTranslator
 
         private void DrawTaskTab(Rect inRect)
         {
-            Listing_Standard listing = BeginScroll(inRect, ref taskScrollPosition, 420f);
+            Listing_Standard listing = BeginScroll(inRect, ref taskScrollPosition, 570f);
             DrawLanguageSection(listing);
             listing.GapLine();
             DrawTaskControls(listing);
@@ -189,6 +190,8 @@ namespace RuntimeTranslator
             Settings.TargetLanguage = TextFieldLabeled(listing, UiText.Get("Target language"), Settings.TargetLanguage);
             Settings.BatchSize = IntSliderLabeled(listing, UiText.Get("Batch size (next request)"), Settings.BatchSize, 1, 30);
             Settings.SkipCompletedTranslations = listing.CheckboxLabeledReturn(UiText.Get("Skip completed translations (reuse valid cache)"), Settings.SkipCompletedTranslations);
+            Settings.SkipModsWithBundledChinese = listing.CheckboxLabeledReturn(UiText.Get("Skip mods with bundled Chinese translations (entire mod, even if partial)"), Settings.SkipModsWithBundledChinese);
+            listing.Label(UiText.Get("Existing target-language translations always take priority. Only missing text is translated."));
             Settings.ApplyRuntimeTranslations = listing.CheckboxLabeledReturn(UiText.Get("Apply translations to loaded Defs"), Settings.ApplyRuntimeTranslations);
             Settings.ExportLanguageFiles = listing.CheckboxLabeledReturn(UiText.Get("Export RimWorld language files"), Settings.ExportLanguageFiles);
         }
@@ -259,6 +262,7 @@ namespace RuntimeTranslator
         private void DrawModSelection(Listing_Standard listing)
         {
             listing.Label(UiText.Get("Loaded mods"));
+            listing.Label(UiText.Get("Official RimWorld content and DLC are excluded from selection and scans."));
             modFilter = TextFieldLabeled(listing, UiText.Get("Search"), modFilter);
             listing.Label(UiText.Get("Selected: ") + Settings.SelectedPackageIds.Count);
 
@@ -303,7 +307,7 @@ namespace RuntimeTranslator
         private IEnumerable<ModContentPack> GetFilteredMods()
         {
             IEnumerable<ModContentPack> packs = LoadedModManager.RunningMods
-                .Where(pack => pack != null);
+                .Where(ModTextScanner.IsPlayerMod);
 
             if (!string.IsNullOrWhiteSpace(modFilter))
             {
@@ -318,7 +322,7 @@ namespace RuntimeTranslator
         private float GetModsViewHeight(Rect inRect)
         {
             int count = GetFilteredMods().Count();
-            return Math.Max(inRect.height - 4f, 150f + count * 30f);
+            return Math.Max(inRect.height - 4f, 200f + count * 30f);
         }
 
         private void DrawPreviewTools(Listing_Standard listing, List<TranslationCacheRecord> records)

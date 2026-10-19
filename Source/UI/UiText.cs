@@ -33,6 +33,8 @@ namespace RuntimeTranslator
         public static string Get(string english)
         {
             string key = Key(english);
+            string native = NativeTranslations.ActiveKeyed(key);
+            if (native != null) return native;
             if (overrides.TryGetValue(key, out string runtime)) return runtime;
             if (!originals.ContainsKey(key)) return english;
             string translated = key.Translate().ToString();
@@ -58,7 +60,7 @@ namespace RuntimeTranslator
         public static bool Apply(TranslationEntry entry)
         {
             if (entry.PackageId != packageId || !originals.ContainsKey(entry.DefName)) return false;
-            if (string.IsNullOrWhiteSpace(entry.TranslatedText)) overrides.Remove(entry.DefName);
+            if (!TextProtection.HasVisibleText(entry.TranslatedText)) overrides.Remove(entry.DefName);
             else overrides[entry.DefName] = entry.TranslatedText;
             return true;
         }

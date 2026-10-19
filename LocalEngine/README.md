@@ -10,7 +10,7 @@
 
 ## 许可与源码
 
-见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。本地 Python 集成脚本 `serve.py` 采用 AGPL-3.0-only，C# 模组保持项目原有 MIT 许可。第三方组件保持各自许可，不能用根目录 MIT 覆盖。`sources.zip` 内有本地桥接源码、构建脚本、依赖来源清单、许可及 copyleft 依赖源码。服务的 `/runtime-translator/source` 提供该档案。
+见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。本地 Python 集成脚本 `serve.py` 采用 AGPL-3.0-only，C# 模组及我们编写的构建、测试和打包脚本采用 GPL-3.0-only；C# 模组另附 RimWorld/Unity 链接例外，详见项目根目录的 [许可范围说明](../LICENSING.md) 和 [链接例外](../LICENSE-EXCEPTION.md)。第三方组件保持各自许可，不能用根目录 MIT 覆盖。`sources.zip` 内有本地桥接源码、构建脚本、依赖来源清单、许可及 copyleft 依赖源码。服务的 `/runtime-translator/source` 提供该档案。
 
 发布二进制时必须一起提供这些资料；仅放 GitHub 上的 C# 代码不满足本地引擎的源码义务。如果修改第三方组件、更新版本或新增模型，需要重新检查许可和来源。发布渠道自身条款仍需另行核对。
 

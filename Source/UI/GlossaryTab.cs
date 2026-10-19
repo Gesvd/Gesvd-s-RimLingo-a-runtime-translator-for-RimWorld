@@ -28,7 +28,7 @@ namespace RuntimeTranslator
                 .OrderByDescending(term => term.Count).ThenBy(term => term.Source).ToList();
             int pages = Math.Max(1, (terms.Count + 29) / 30);
             glossaryPage = Math.Max(0, Math.Min(glossaryPage, pages - 1));
-            Listing_Standard listing = BeginScroll(inRect, ref glossaryScrollPosition, 370f + Math.Min(30, terms.Count) * 34f);
+            Listing_Standard listing = BeginScroll(inRect, ref glossaryScrollPosition, 455f + Math.Min(30, terms.Count) * 34f);
             listing.Label(UiText.Get("Glossary: ") + Settings.SourceLanguage + " -> " + Settings.TargetLanguage);
             listing.Label(UiText.Get("Scan English words in selected mods. Fill a translation to enforce it; blank means inactive. Changes affect the next translation task."));
             if (glossaryScanning) listing.Label(UiText.Get("Scanning selected mod files..."));
@@ -38,6 +38,8 @@ namespace RuntimeTranslator
                 if (listing.ButtonText(UiText.Get("Cancel glossary translation"))) glossaryTranslationCancellation.Cancel();
             }
             else if (!glossaryScanning && listing.ButtonText(UiText.Get("Translate missing glossary terms (current provider)"))) StartGlossaryTranslation();
+            if (!glossaryScanning && glossaryTranslationCancellation == null && listing.ButtonText(UiText.Get("Import glossary from selected mods with bundled Chinese translations"))) StartBundledGlossaryImport();
+            listing.Label(UiText.Get("Import matches English/Chinese XML keys and short labels. Existing translations are kept; conflicting terms are omitted."));
             listing.Label(glossaryTranslationStatus);
             string nextSearch = TextFieldLabeled(listing, UiText.Get("Search terms"), glossarySearch);
             if (nextSearch != glossarySearch) { glossarySearch = nextSearch; glossaryPage = 0; }
@@ -122,6 +124,48 @@ namespace RuntimeTranslator
                     Messages.Message(glossaryTranslationStatus, result.State == TranslationState.Completed && result.Failed == 0
                         ? MessageTypeDefOf.TaskCompletion : MessageTypeDefOf.RejectInput, false);
                 });
+            });
+        }
+
+        private void StartBundledGlossaryImport()
+        {
+            string source = Settings.SourceLanguage;
+            string target = Settings.TargetLanguage;
+            if (!BundledTranslations.CanImport(source, target))
+            {
+                Messages.Message(UiText.Get("Bundled glossary import requires English to Simplified or Traditional Chinese."), MessageTypeDefOf.RejectInput, false);
+                return;
+            }
+            // Capture game-owned folder lists on the main thread, including mods skipped by translation.
+            List<List<string>> mods = ModTextScanner.SelectedModFolders(Settings);
+            if (mods.Count == 0)
+            {
+                Messages.Message(UiText.Get("Select at least one loaded mod with readable files on the Mods tab."), MessageTypeDefOf.RejectInput, false);
+                return;
+            }
+            glossaryScanning = true;
+            Task.Run(() =>
+            {
+                try
+                {
+                    List<GlossaryTerm> imported = BundledTranslations.ReadGlossary(mods, source, target, TranslationLifetime.Token);
+                    TranslationManager.OnMainThread(() =>
+                    {
+                        glossaryScanning = false;
+                        int added = BundledTranslations.ImportGlossary(Settings, imported);
+                        glossaryTranslationStatus = UiText.Get("Bundled glossary terms imported: ") + added;
+                        WriteSettings();
+                        Messages.Message(glossaryTranslationStatus, MessageTypeDefOf.TaskCompletion, false);
+                    });
+                }
+                catch (Exception ex)
+                {
+                    TranslationManager.OnMainThread(() =>
+                    {
+                        glossaryScanning = false;
+                        Messages.Message(UiText.Get("Glossary scan failed: ") + ex.Message, MessageTypeDefOf.RejectInput, false);
+                    });
+                }
             });
         }
 

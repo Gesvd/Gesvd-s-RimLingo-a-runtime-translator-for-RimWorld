@@ -88,4 +88,11 @@
   <RT_f9293d8c355053a6025e96b037cca84d40669386>Use bundled offline engine (Windows, English to Chinese)</RT_f9293d8c355053a6025e96b037cca84d40669386>
   <RT_6fce2342ac73749ce9dafdab0662dff4246a19f6>Starts on the first translation request. No API key required.</RT_6fce2342ac73749ce9dafdab0662dff4246a19f6>
   <RT_83cf8be1cbef7ac0ddb2f6c768fd08d2ef453fc1>License: AGPL-3.0. Source and notices: LocalEngine/sources.zip</RT_83cf8be1cbef7ac0ddb2f6c768fd08d2ef453fc1>
+  <RT_3a95ee070dd59440be999e1b3d4e7843c3db3b78>Skip mods with bundled Chinese translations (entire mod, even if partial)</RT_3a95ee070dd59440be999e1b3d4e7843c3db3b78>
+  <RT_13ab369e84fe10535a6e037e0b9d41676311b040>Official RimWorld content and DLC are excluded from selection and scans.</RT_13ab369e84fe10535a6e037e0b9d41676311b040>
+  <RT_843ecb85aecda157de23b55c48ab1a075eab95a1>Import glossary from selected mods with bundled Chinese translations</RT_843ecb85aecda157de23b55c48ab1a075eab95a1>
+  <RT_829840315906730349180885c0b0b3240af1f123>Import matches English/Chinese XML keys and short labels. Existing translations are kept; conflicting terms are omitted.</RT_829840315906730349180885c0b0b3240af1f123>
+  <RT_339e657cce6e0ed1f303a5e19a979718996395f9>Bundled glossary import requires English to Simplified or Traditional Chinese.</RT_339e657cce6e0ed1f303a5e19a979718996395f9>
+  <RT_1f2c1700378bbfb948ee05b0301810e919d20680>Bundled glossary terms imported: </RT_1f2c1700378bbfb948ee05b0301810e919d20680>
+  <RT_66bda41cf2bad796b6600a397900fb60a22634be>Existing target-language translations always take priority. Only missing text is translated.</RT_66bda41cf2bad796b6600a397900fb60a22634be>
 </LanguageData>

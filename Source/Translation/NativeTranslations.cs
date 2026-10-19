@@ -1,0 +1,78 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Verse;
+
+namespace RuntimeTranslator
+{
+    public static class NativeTranslations
+    {
+        private static readonly object gate = new object();
+        private static readonly Dictionary<string, HashSet<string>> languages = new Dictionary<string, HashSet<string>>();
+
+        private static readonly Dictionary<string, LoadedLanguage> snapshots = new Dictionary<string, LoadedLanguage>();
+        private static readonly Dictionary<string, string[]> defTypes = new Dictionary<string, string[]>();
+
+        public static void Reset() { lock (gate) { languages.Clear(); snapshots.Clear(); defTypes.Clear(); } }
+
+        // Capture on the main thread. Workers/exporters only read the immutable key set.
+        public static void Prepare(string target)
+        {
+            string language = Glossary.LanguageKey(target);
+            LoadedLanguage active = LanguageDatabase.activeLanguage;
+            lock (gate) if (languages.ContainsKey(language) && ReferenceEquals(snapshots[language], active)) return;
+            HashSet<string> keys = new HashSet<string>();
+            Dictionary<string, string[]> hierarchy = new Dictionary<string, string[]>();
+            foreach (ModContentPack pack in LoadedModManager.RunningMods.Where(pack => pack != null))
+            foreach (Type type in ModTextScanner.GetDefs(pack).Where(def => def != null).Select(def => def.GetType()).Distinct())
+            {
+                List<string> names = new List<string>();
+                for (Type current = type; current != null && typeof(Def).IsAssignableFrom(current); current = current.BaseType) names.Add(current.Name);
+                hierarchy[type.Name] = names.ToArray();
+            }
+            if (active != null && Glossary.LanguageKey(active.folderName) == language)
+            {
+                foreach (var pair in active.keyedReplacements)
+                    if (TextProtection.HasVisibleText(pair.Value.value)) keys.Add("Keyed|" + pair.Key);
+                foreach (DefInjectionPackage package in active.defInjections)
+                {
+                    if (package.defType == null) continue;
+                    foreach (var injection in package.injections.Values.Where(item => TextProtection.HasVisibleText(item.replacedString)))
+                    {
+                        keys.Add("DefInjected|" + package.defType.Name + "|" + injection.path);
+                        keys.Add("DefInjected|" + package.defType.Name + "|" + injection.normalizedPath);
+                    }
+                }
+            }
+            else
+            {
+                foreach (ModContentPack pack in LoadedModManager.RunningMods.Where(pack => pack != null))
+                    keys.UnionWith(BundledTranslations.NativeKeys(ModTextScanner.ContentFolders(pack), target));
+            }
+            lock (gate)
+            {
+                languages[language] = keys; snapshots[language] = active;
+                foreach (var pair in hierarchy) defTypes[pair.Key] = pair.Value;
+            }
+        }
+
+        public static bool Contains(TranslationEntry entry)
+        {
+            lock (gate)
+            {
+                if (!languages.TryGetValue(Glossary.LanguageKey(entry.TargetLanguage), out HashSet<string> keys)) return false;
+                if (entry.DefTypeName == "Keyed") return keys.Contains("Keyed|" + entry.DefName);
+                string[] names = defTypes.TryGetValue(entry.DefTypeName ?? "", out string[] hierarchy) ? hierarchy : new[] { entry.DefTypeName };
+                return names.Any(name => keys.Contains("DefInjected|" + name + "|" + entry.DefName + "." + entry.FieldName));
+            }
+        }
+
+        public static string ActiveKeyed(string key)
+        {
+            LoadedLanguage active = LanguageDatabase.activeLanguage;
+            if (active != null && Glossary.LanguageKey(active.folderName) != "en" && active.keyedReplacements.TryGetValue(key, out var replacement) &&
+                TextProtection.HasVisibleText(replacement.value)) return replacement.value;
+            return null;
+        }
+    }
+}

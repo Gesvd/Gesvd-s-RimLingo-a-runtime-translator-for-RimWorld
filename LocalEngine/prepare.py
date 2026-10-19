@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: MIT
+# SPDX-License-Identifier: GPL-3.0-only
 """Release preparation, never run from the game. Requires installed local dependencies."""
 import concurrent.futures
 import hashlib
@@ -108,6 +108,8 @@ def main():
                 archive.write(path, 'licenses/' + path.relative_to(LICENSES).as_posix())
         for name in ('serve.py', 'prepare.py', 'Build.ps1', 'requirements-lock.txt', 'dependencies.json', 'README.md', 'THIRD_PARTY_NOTICES.md', 'test_engine.py', 'package.py'):
             archive.write(ROOT / name, name)
+        for name in ('LICENSE', 'LICENSE-EXCEPTION.md', 'LICENSING.md'):
+            archive.write(ROOT.parent / name, 'project/' + name)
     (ROOT / 'READY.json').write_text(json.dumps({'libretranslate': '1.9.6', 'model': 'en_zh-1.9',
                                              'model_sha256': digest, 'sentence_splitter': 'stdlib-regex-v1'}, indent=2), encoding='utf-8')
     print('Prepared local engine and corresponding source archives.', flush=True)

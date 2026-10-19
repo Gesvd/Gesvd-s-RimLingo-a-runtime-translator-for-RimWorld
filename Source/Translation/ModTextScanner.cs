@@ -21,16 +21,18 @@ namespace RuntimeTranslator
 
         public static List<TranslationEntry> Scan(RuntimeTranslatorSettings settings)
         {
+            NativeTranslations.Prepare(settings.TargetLanguage);
             List<TranslationEntry> entries = new List<TranslationEntry>();
             HashSet<string> selected = new HashSet<string>(settings.SelectedPackageIds ?? new List<string>());
             List<GlossaryTerm> terms = Glossary.ForLanguages(settings, settings.SourceLanguage, settings.TargetLanguage);
             foreach (ModContentPack pack in LoadedModManager.RunningMods)
             {
-                if (pack == null || !selected.Contains(pack.PackageIdPlayerFacing))
+                if (!IsPlayerMod(pack) || !selected.Contains(pack.PackageIdPlayerFacing))
                 {
                     continue;
                 }
 
+                if (settings.SkipModsWithBundledChinese && BundledTranslations.HasChineseTranslation(ContentFolders(pack), settings.TargetLanguage, TranslationLifetime.Token)) continue;
                 entries.AddRange(UiText.Scan(pack, settings));
                 IEnumerable<Def> defs = GetDefs(pack);
                 foreach (Def def in defs)
@@ -40,6 +42,7 @@ namespace RuntimeTranslator
             }
 
             return entries
+                .Where(entry => !NativeTranslations.Contains(entry))
                 .GroupBy(entry => entry.Id)
                 .Select(group => group.First())
                 .OrderBy(entry => entry.ModName)
@@ -49,7 +52,7 @@ namespace RuntimeTranslator
                 .ToList();
         }
 
-        private static IEnumerable<Def> GetDefs(ModContentPack pack)
+        internal static IEnumerable<Def> GetDefs(ModContentPack pack)
         {
             try
             {
@@ -68,21 +71,35 @@ namespace RuntimeTranslator
 
         internal static bool IsSupportedField(string name) { return SupportedFields.Contains(name); }
 
-        public static List<string> SelectedContentFolders(RuntimeTranslatorSettings settings)
+        public static bool IsPlayerMod(ModContentPack pack) { return pack != null && !pack.IsOfficialMod; }
+
+        public static void ExcludeOfficialSelections(RuntimeTranslatorSettings settings)
+        {
+            HashSet<string> official = new HashSet<string>(LoadedModManager.RunningMods.Where(pack => pack != null && pack.IsOfficialMod).Select(pack => pack.PackageIdPlayerFacing));
+            settings.SelectedPackageIds?.RemoveAll(official.Contains);
+        }
+
+        public static List<string> ContentFolders(ModContentPack pack)
+        {
+            Type type = pack.GetType();
+            object loaded = type.GetProperty("FoldersToLoad", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)?.GetValue(pack, null)
+                ?? type.GetField("foldersToLoadDescendingOrder", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)?.GetValue(pack)
+                ?? type.GetField("foldersToLoad", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)?.GetValue(pack);
+            IEnumerable<string> folders = loaded is IEnumerable<string> paths && paths.Any()
+                ? paths.Select(path => Path.IsPathRooted(path) ? path : Path.Combine(pack.RootDir, path)) : new[] { pack.RootDir };
+            return folders.Where(path => !string.IsNullOrWhiteSpace(path) && Directory.Exists(path)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        }
+
+        public static List<List<string>> SelectedModFolders(RuntimeTranslatorSettings settings)
         {
             HashSet<string> selected = new HashSet<string>(settings.SelectedPackageIds ?? new List<string>());
-            List<string> folders = new List<string>();
-            foreach (ModContentPack pack in LoadedModManager.RunningMods.Where(pack => pack != null && selected.Contains(pack.PackageIdPlayerFacing)))
-            {
-                Type type = pack.GetType();
-                object loaded = type.GetProperty("FoldersToLoad", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)?.GetValue(pack, null)
-                    ?? type.GetField("foldersToLoadDescendingOrder", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)?.GetValue(pack)
-                    ?? type.GetField("foldersToLoad", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)?.GetValue(pack);
-                if (loaded is IEnumerable<string> paths && paths.Any())
-                    folders.AddRange(paths.Select(path => Path.IsPathRooted(path) ? path : Path.Combine(pack.RootDir, path)));
-                else folders.Add(pack.RootDir);
-            }
-            return folders.Where(path => !string.IsNullOrWhiteSpace(path) && Directory.Exists(path)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+            return LoadedModManager.RunningMods.Where(pack => IsPlayerMod(pack) && selected.Contains(pack.PackageIdPlayerFacing))
+                .Select(ContentFolders).ToList();
+        }
+
+        public static List<string> SelectedContentFolders(RuntimeTranslatorSettings settings)
+        {
+            return SelectedModFolders(settings).SelectMany(folders => folders).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
         }
 
         private static IEnumerable<TranslationEntry> ScanDef(ModContentPack pack, Def def, RuntimeTranslatorSettings settings, List<GlossaryTerm> terms)

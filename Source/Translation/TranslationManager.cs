@@ -45,6 +45,7 @@ namespace RuntimeTranslator
         public static void Initialize(RuntimeTranslatorSettings modSettings)
         {
             settings = modSettings;
+            NativeTranslations.Reset();
             cache = new TranslationCacheStore();
             cache.Load();
         }
@@ -174,7 +175,11 @@ namespace RuntimeTranslator
                 return;
             }
 
-            if (!TranslationLifetime.IsStopping) LanguageFileExporter.Export(GetCachedTranslationsSnapshot(), settings.TargetLanguage);
+            if (!TranslationLifetime.IsStopping)
+            {
+                NativeTranslations.Prepare(settings.TargetLanguage);
+                LanguageFileExporter.Export(GetCachedTranslationsSnapshot(), settings.TargetLanguage);
+            }
         }
 
         public static List<TranslationCacheRecord> GetCachedTranslationsSnapshot()
@@ -280,7 +285,7 @@ namespace RuntimeTranslator
                         completedCache = cache.Records.GroupBy(record => record.Id + "|" + record.SourceHash)
                             .Select(group => group.OrderByDescending(record => record.Provider == providerName)
                                 .ThenByDescending(record => record.UpdatedUtcTicks).First())
-                            .Where(record => !string.IsNullOrWhiteSpace(record.TranslatedText))
+                            .Where(record => TextProtection.HasVisibleText(record.TranslatedText))
                             .ToDictionary(record => record.Id + "|" + record.SourceHash, CloneRecord);
                     }
                 }
@@ -288,9 +293,10 @@ namespace RuntimeTranslator
                 foreach (TranslationEntry entry in scanned)
                 {
                     token.ThrowIfCancellationRequested();
+                    if (NativeTranslations.Contains(entry)) { skipped++; continue; }
                     TranslationCacheRecord cached;
                     completedCache.TryGetValue(entry.Id + "|" + entry.SourceHash, out cached);
-                    if (cached != null && !string.IsNullOrWhiteSpace(cached.TranslatedText))
+                    if (cached != null && TextProtection.HasVisibleText(cached.TranslatedText))
                     {
                         skipped++;
                         if (taskSettings.ApplyRuntimeTranslations) QueueApply(cached.ToEntry());
@@ -323,7 +329,7 @@ namespace RuntimeTranslator
                         token.ThrowIfCancellationRequested();
                         foreach (TranslationEntry entry in batch)
                         {
-                            if (result.Translations.TryGetValue(entry.Id, out string translated) && !string.IsNullOrWhiteSpace(translated))
+                            if (result.Translations.TryGetValue(entry.Id, out string translated) && TextProtection.HasVisibleText(translated))
                             {
                                 entry.TranslatedText = translated;
                                 lock (cacheLock)

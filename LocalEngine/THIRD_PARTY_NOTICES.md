@@ -1,6 +1,10 @@
 # Third-party notices and redistribution review
 
-Reviewed 2026-10-19. This records upstream licensing evidence and the conditions used for this bundle; it is not a legal opinion about every jurisdiction or distribution platform.
+Reviewed 2026-10-19; project licensing scope updated 2026-10-20. This records upstream licensing evidence and the conditions used for this bundle; it is not a legal opinion about every jurisdiction or distribution platform.
+
+## Our project code
+
+Copyright (c) 2026 Gesvd. Project authors: Gesvd & Codex. The original C# mod, tests, project files and our build/preparation/package scripts are licensed under GPL-3.0-only. The C# mod has the additional RimWorld/Unity linking permission in [LICENSE-EXCEPTION.md](../LICENSE-EXCEPTION.md). See [LICENSING.md](../LICENSING.md) and [LICENSE](../LICENSE). This permission does not apply to LibreTranslate or third-party code. Earlier copies distributed under MIT retain their original grant.
 
 ## LibreTranslate and the local service
 
@@ -8,7 +12,7 @@ LibreTranslate 1.9.6 is AGPL-3.0. Its upstream source and license:
 https://github.com/LibreTranslate/LibreTranslate
 https://raw.githubusercontent.com/LibreTranslate/LibreTranslate/main/LICENSE
 
-Redistribution is permitted subject to the AGPL conditions, including keeping notices and making Corresponding Source available (sections 4–6); modified network services must offer source to users (section 13). Local integration `serve.py`, copyright 2026 Gesvd and Codex, is released under AGPL-3.0-only, without warranty. It adds offline boot, local-only networking, parent-process cleanup, health/source endpoints, protected-token translation and standard-library sentence splitting. Upstream installed source files are not edited. The service runs independently and the MIT C# mod uses HTTP; we treat this distribution as an aggregate under section 5. The third-party licenses are not replaced by the project's MIT LICENSE.
+Redistribution is permitted subject to the AGPL conditions, including keeping notices and making Corresponding Source available (sections 4–6); modified network services must offer source to users (section 13). Local integration `serve.py`, copyright 2026 Gesvd and Codex, is released under AGPL-3.0-only, without warranty. It adds offline boot, local-only networking, parent-process cleanup, health/source endpoints, protected-token translation and standard-library sentence splitting. Upstream installed source files are not edited. The service runs independently and the GPL-3.0-only C# mod (with the project-specific RimWorld/Unity linking exception) uses HTTP; we treat this distribution as an aggregate under section 5. The third-party licenses are not replaced by the project's GPL LICENSE.
 
 The bundle includes copyleft source distributions, installed Python source, retained package notices and build scripts; `dependencies.json` identifies exact versions, upstream URLs and source hashes. `sources.zip` serves this source material at `/runtime-translator/source`. Distributors must keep equivalent source access alongside binary downloads for as long as required, including dependency and native-library source; do not strip notices or publish only the DLL. PyMuPDF/MuPDF, LexiLang, MiniSBD and pysrt also have copyleft terms. PyMuPDF is pinned to 1.24.11; its build requires MuPDF 1.24.10, whose complete source archive is included separately.
 

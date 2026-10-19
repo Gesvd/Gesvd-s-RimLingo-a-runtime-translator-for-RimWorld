@@ -18,12 +18,27 @@ namespace Verse
     public class Def { public string defName; public string label; }
     public class ModContentPack
     {
+        public bool IsOfficialMod;
         public string RootDir;
         public List<string> foldersToLoadDescendingOrder;
         public string PackageIdPlayerFacing;
         public string Name;
         public List<Def> AllDefs { get; set; }
     }
+    public class LoadedLanguage
+    {
+        public string folderName;
+        public class KeyedReplacement { public string value; }
+        public Dictionary<string, KeyedReplacement> keyedReplacements = new Dictionary<string, KeyedReplacement>();
+        public List<DefInjectionPackage> defInjections = new List<DefInjectionPackage>();
+    }
+    public class DefInjectionPackage
+    {
+        public Type defType;
+        public class DefInjection { public string path; public string normalizedPath; public string replacedString; }
+        public Dictionary<string, DefInjection> injections = new Dictionary<string, DefInjection>();
+    }
+    public static class LanguageDatabase { public static LoadedLanguage activeLanguage; }
     public static class LoadedModManager { public static List<ModContentPack> RunningMods = new List<ModContentPack>(); }
     public static class GenFilePaths { public static string ConfigFolderPath; }
     public static class Log { public static void Warning(string text) { } public static void Error(string text) { } }
@@ -228,6 +243,8 @@ namespace RuntimeTranslator.Tests
             passed += TaskRegressionChecks.Run(Path.Combine(folder, "task-checks"));
             passed += GlossaryChecks.Run(Path.Combine(folder, "glossary-checks"));
             passed += WorkflowChecks.Run(Path.Combine(folder, "workflow-checks"));
+            passed += BundledTranslationChecks.Run(Path.Combine(folder, "bundled-translation-checks"));
+            passed += NativeTranslationChecks.Run(Path.Combine(folder, "native-translation-checks"));
             passed += SelfAndShutdownChecks.Run(Path.Combine(folder, "self-and-shutdown"));
             Console.WriteLine("Passed " + passed + " checks. Test data: " + folder);
         }

@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: MIT
+# SPDX-License-Identifier: GPL-3.0-only
 """Package the playable mod without caches, game DLLs or unused model assets."""
 import hashlib
 from pathlib import Path
@@ -16,7 +16,7 @@ def main():
     if not (ROOT / 'Assemblies' / 'RuntimeTranslator.dll').is_file():
         raise RuntimeError('Build the C# mod first')
     OUTPUT.parent.mkdir(exist_ok=True)
-    files = [ROOT / name for name in ('LICENSE', 'README.md', 'RuntimeTranslator.csproj')]
+    files = [ROOT / name for name in ('LICENSE', 'LICENSE-EXCEPTION.md', 'LICENSING.md', 'README.md', 'RuntimeTranslator.csproj')]
     for folder in ('About', 'Languages', 'Assemblies', 'Source'):
         files.extend(path for path in (ROOT / folder).rglob('*') if path.is_file())
     for folder in ('runtime', 'models/packages', 'licenses'):

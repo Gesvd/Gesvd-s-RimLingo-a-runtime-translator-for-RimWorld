@@ -25,6 +25,7 @@ namespace RuntimeTranslator
                 HashSet<string> writtenFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 foreach (IGrouping<string, TranslationCacheRecord> modGroup in records
                     .Where(record => string.Equals(record.TargetLanguage, targetLanguage, StringComparison.OrdinalIgnoreCase))
+                    .Where(record => !NativeTranslations.Contains(record.ToEntry()))
                     .GroupBy(record => new { record.PackageId, record.DefTypeName, record.DefName, record.FieldName })
                     .Select(group => group.OrderByDescending(record => record.UpdatedUtcTicks).First())
                     .GroupBy(record => record.PackageId ?? "UnknownMod"))
@@ -37,7 +38,7 @@ namespace RuntimeTranslator
                             : Path.Combine(modRoot, "DefInjected", FileNameSanitizer.Sanitize(typeGroup.Key));
                         Directory.CreateDirectory(folder);
                         string filePath = Path.Combine(folder, "RuntimeTranslator.xml");
-                        WriteDefInjectedFile(filePath, typeGroup.Where(record => !string.IsNullOrWhiteSpace(record.TranslatedText)), token);
+                        WriteDefInjectedFile(filePath, typeGroup.Where(record => TextProtection.HasVisibleText(record.TranslatedText)), token);
                         writtenFiles.Add(filePath);
                     }
                 }

@@ -30,6 +30,7 @@ namespace RuntimeTranslator
         public string LaraTranslateRules = "Translate RimWorld mod text naturally. Preserve placeholders, XML-like tags, variables, numbers, and game terms.";
         public int BatchSize = 12;
         public bool SkipCompletedTranslations = true;
+        public bool SkipModsWithBundledChinese = true;
         public bool ApplyRuntimeTranslations = true;
         public bool ExportLanguageFiles = true;
         public List<string> SelectedPackageIds = new List<string>();
@@ -61,6 +62,7 @@ namespace RuntimeTranslator
             Scribe_Values.Look(ref LaraTranslateApiId, "laraTranslateApiId", string.Empty);
             Scribe_Values.Look(ref LaraTranslateRules, "laraTranslateRules", "Translate RimWorld mod text naturally. Preserve placeholders, XML-like tags, variables, numbers, and game terms.");
             Scribe_Values.Look(ref BatchSize, "batchSize", 12);
+            Scribe_Values.Look(ref SkipModsWithBundledChinese, "skipModsWithBundledChinese", true);
             Scribe_Values.Look(ref SkipCompletedTranslations, "skipCompletedTranslations", true);
             Scribe_Values.Look(ref ApplyRuntimeTranslations, "applyRuntimeTranslations", true);
             Scribe_Values.Look(ref ExportLanguageFiles, "exportLanguageFiles", true);

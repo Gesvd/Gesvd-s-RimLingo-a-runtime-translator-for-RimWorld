@@ -35,6 +35,13 @@ namespace RuntimeTranslator
             @"(__RT_TOKEN_\d+__|<[^>]+>|\{[^}]+\}|\[[A-Za-z0-9_]+\]|\\n|%\w+)",
             RegexOptions.Compiled);
 
+        public static bool HasVisibleText(string text)
+        {
+            string plain = Regex.Replace(text ?? string.Empty, @"<[^>]*>", string.Empty);
+            return plain.Any(character => !char.IsWhiteSpace(character) && !char.IsControl(character) &&
+                char.GetUnicodeCategory(character) != System.Globalization.UnicodeCategory.Format);
+        }
+
         internal static bool IsGlossarySource(string source)
         {
             return !string.IsNullOrWhiteSpace(source) && source.IndexOfAny("<>{}[]\\".ToCharArray()) < 0 && !TokenRegex.IsMatch(source);

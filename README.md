@@ -48,7 +48,7 @@ Preview's **Replace next 50** processes each matching record once per operation,
 
 ## Translating This Mod
 
-Gesvd’s RimLingo now appears in its own **Mods** list. Select it and start a translation task to translate the settings interface. The English UI table is in `Languages/English/Keyed/RuntimeTranslator.xml`; its 88 entries support runtime editing/caching and standard `Keyed` export. Its source table remains English even after the interface is translated. Game/provider IDs and diagnostic log messages are not all localized.
+Gesvd’s RimLingo now appears in its own **Mods** list. Select it and start a translation task to translate the settings interface. The English UI table is in `Languages/English/Keyed/RuntimeTranslator.xml`; its 95 entries support runtime editing/caching and standard `Keyed` export. Its source table remains English even after the interface is translated. Game/provider IDs and diagnostic log messages are not all localized.
 
 ## Interrupting Work On Exit
 
@@ -136,3 +136,31 @@ Apart from its own keyed settings interface, it does not yet patch every other m
 ## Bundled offline translation
 
 Windows x64 users can select LibreTranslate and enable **Use bundled offline engine (Windows, English to Chinese)**. The included engine runs independently on the local machine, uses the existing glossary and requires no API key or internet at runtime. Only English → ChineseSimplified is bundled. See [LocalEngine/README.md](LocalEngine/README.md) for packaging, rebuilding, logs, and [license/source obligations](LocalEngine/THIRD_PARTY_NOTICES.md).
+
+## License / 许可证
+
+我们编写的模组主体、测试及构建/打包工具采用 **GPL-3.0-only**；C# 模组附有允许与 RimWorld/Unity 程序集组合运行的有限[链接例外](LICENSE-EXCEPTION.md)。Copyright (c) 2026 Gesvd；项目作者为 Gesvd & Codex。
+
+**LibreTranslate 保持 AGPL-3.0，我们的本地服务集成 `LocalEngine/serve.py` 采用 AGPL-3.0-only。** 模型、Python 和其他第三方组件保留各自许可，不受根目录 GPL 统一覆盖。分发时须保留适用声明并提供匹配的对应源码。GPL 允许商业使用，但分发修改版须履行其源码及相同许可要求。历史 MIT 副本的授权不被撤回。
+
+完整范围说明见 [LICENSING.md](LICENSING.md)，GPL 全文见 [LICENSE](LICENSE)，第三方来源和模型署名见 [THIRD_PARTY_NOTICES.md](LocalEngine/THIRD_PARTY_NOTICES.md)。
+
+
+## Official content and bundled Chinese translations
+
+RimWorld Core and DLC are excluded using the game's official-content flag, both from mod selection and from translation/glossary scanning. Old saved selections cannot reintroduce them.
+
+**Skip mods with bundled Chinese translations (entire mod, even if partial)** is enabled by default on the Task tab. For a Simplified/Traditional Chinese target, it skips a selected mod if the active content folders contain a matching Chinese Keyed or DefInjected XML entry with Chinese text. Empty directories, empty/TODO values and translations in inactive version folders do not trigger this check. Simplified Chinese and Traditional Chinese are checked separately. Other target languages are unaffected. Disable this option to fill missing text in mods with incomplete bundled Chinese catalogs; valid existing target-language entries remain protected. Skipped mods stay selectable so their existing translations can be imported into the glossary.
+
+To reuse existing terminology, select the relevant mods on **Mods**, set English/Auto as source and the matching Chinese target, then open **Glossary** and press **Import glossary from selected mods with bundled Chinese translations**. Import runs locally without an API request. It pairs English/Chinese Keyed entries by key, and original Def labels with DefInjected `DefName.label` entries. It honors active folder precedence and never matches keys across different mods.
+
+The importer adds short words/phrases (at most six words and 64 characters) or fills blank glossary translations. Existing defaults and manual translations are kept, and conflicting Chinese translations for the same English phrase are omitted. Imported terms remain editable/removable through the existing glossary UI. It does not infer individual word meanings from translated sentences; inherited-only labels, non-XML Strings and separate translation mods without matching source files are not imported.
+
+
+## Native translation priority and text fallback
+
+Existing target-language translations always take priority, including when **Skip mods with bundled Chinese translations** is disabled. Turning off whole-mod skipping allows missing entries to be translated; it does not authorize overwriting existing translations. Scanning and the worker exclude native entries, runtime application rejects conflicting cached/manual replacements, and export filters those entries out of its own generated files.
+
+For the current game language, RimLingo snapshots the game's loaded Keyed and DefInjected tables, including separate translation mods and injections on base Def classes. For a different target language it reads the active mods' matching language XML instead. These indexes are prepared when needed for a task, preview application or export, with no new scan during game startup. A game-language object change rebuilds the snapshot; installing/changing mod files still requires the normal game reload. Native priority applies to the translator's supported fields and its own Keyed UI; it does not add translation hooks to every mod's hardcoded UI.
+
+The translator keeps existing text when requests fail, results are missing, or a response contains only whitespace, zero-width format characters or empty markup. Clearing an automatic translation restores the original text rather than displaying an empty string. Explicit OpenAI-compatible `content_filter` and `message.refusal` responses fail the batch without becoming translations. Existing good translations and source text remain available. RimLingo does not perform content censorship; an external provider may still refuse or return an inaccurate nonempty translation, which cannot always be identified automatically.

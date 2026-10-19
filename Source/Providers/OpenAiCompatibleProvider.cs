@@ -64,11 +64,17 @@ namespace RuntimeTranslator
                         throw new InvalidOperationException("Provider returned " + (int)response.StatusCode + ": " + body);
                     }
 
-                    OpenAiChatResponse chatResponse = JsonHttp.Deserialize<OpenAiChatResponse>(body);
-                    string content = chatResponse?.choices?.FirstOrDefault()?.message?.content;
-                    return ParseResult(request, protectedTexts, content);
+                    return ReadResponse(request, protectedTexts, body);
                 }
             }
+        }
+
+        internal static TranslationBatchResult ReadResponse(TranslationBatchRequest request, List<ProtectedText> protectedTexts, string body)
+        {
+            OpenAiChoice choice = JsonHttp.Deserialize<OpenAiChatResponse>(body)?.choices?.FirstOrDefault();
+            if (string.Equals(choice?.finish_reason, "content_filter", StringComparison.OrdinalIgnoreCase) || !string.IsNullOrWhiteSpace(choice?.message?.refusal))
+                throw new InvalidOperationException("Provider refused or filtered the translation. Original text was kept.");
+            return ParseResult(request, protectedTexts, choice?.message?.content);
         }
 
         private static string BuildPrompt(TranslationBatchRequest request, List<ProtectedText> protectedTexts)
@@ -110,7 +116,7 @@ namespace RuntimeTranslator
             foreach (TranslationItem item in items)
             {
                 if (item == null || item.id == null || !protectionById.TryGetValue(item.id, out ProtectedText protectedText) ||
-                    result.Translations.ContainsKey(item.id) || string.IsNullOrWhiteSpace(item.text))
+                    result.Translations.ContainsKey(item.id) || !TextProtection.HasVisibleText(item.text))
                 {
                     throw new InvalidOperationException("Provider JSON contains an unknown/duplicate ID or an empty translation.");
                 }
@@ -145,6 +151,7 @@ namespace RuntimeTranslator
         {
             [DataMember] public string role;
             [DataMember] public string content;
+            [DataMember(EmitDefaultValue = false)] public string refusal { get; set; }
         }
 
         [DataContract]
@@ -157,6 +164,7 @@ namespace RuntimeTranslator
         private sealed class OpenAiChoice
         {
             [DataMember] public OpenAiMessage message { get; set; }
+            [DataMember] public string finish_reason { get; set; }
         }
     }
 }

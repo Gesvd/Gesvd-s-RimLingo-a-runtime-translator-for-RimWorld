@@ -28,6 +28,8 @@ namespace RuntimeTranslator
 
             try
             {
+                NativeTranslations.Prepare(entry.TargetLanguage);
+                if (NativeTranslations.Contains(entry)) return false;
                 if (entry.DefTypeName == "Keyed") return UiText.Apply(entry);
                 ModContentPack pack = LoadedModManager.RunningMods
                     .FirstOrDefault(mod => mod.PackageIdPlayerFacing == entry.PackageId);
@@ -58,7 +60,7 @@ namespace RuntimeTranslator
                 {
                     fields.Add(field.Name, field.GetValue(def) as string);
                 }
-                field.SetValue(def, string.IsNullOrWhiteSpace(entry.TranslatedText) ? fields[field.Name] : entry.TranslatedText);
+                field.SetValue(def, !TextProtection.HasVisibleText(entry.TranslatedText) ? fields[field.Name] : entry.TranslatedText);
                 return true;
             }
             catch (Exception ex)
