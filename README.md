@@ -2,6 +2,81 @@
 
 Authors: Gesvd & Codex.
 
+作者：Gesvd & Codex。以下为中文使用说明，后面保留英文说明和接口细节。
+
+## 中文使用说明
+
+Gesvd’s RimLingo 是一个在 RimWorld 游戏内运行的模组翻译器。玩家可以选择已加载的模组，通过内置离线引擎或自己配置的翻译 API 补充翻译，并用词汇库统一术语、手动修改结果。它不会在游戏启动时自动联网或开始翻译任务。
+
+### 安装与首次使用
+
+1. 下载完整安装包 **`Gesvds-RimLingo-LibreTranslate-win64.zip`**。GitHub 的 **Code → Download ZIP** 是源码包，不含大型离线运行文件；普通玩家应使用完整安装包，无需自行编译 DLL。
+2. 手动安装时，将解压出来的 **`RimLingo` 文件夹**放入 RimWorld 的 `Mods` 目录。进入该文件夹后，应直接看到 `About`、`Assemblies`、`Languages` 和 `LocalEngine`，不要再多套一层目录。
+3. 在游戏模组列表中启用 **Gesvd’s RimLingo: a runtime translator for RimWorld**，按游戏提示重新加载。
+4. 打开 **选项 → 模组设置 → Gesvd’s RimLingo**。`Task` 是任务页，`Mods` 是模组选择页，`Provider` 是翻译服务页，`Preview` 是译文预览页，`Status` 是状态页，`Glossary` 是词汇库页。
+5. 在模组页勾选要处理的模组，在任务页填写源语言和目标语言，在服务页选择翻译方式，再点击开始。任务可以暂停、继续或取消。
+
+发布到 Steam 创意工坊时，作者应上传完整包解压后的 `RimLingo` 模组目录，并保留许可及源码资料。正确上传完整目录后，订阅玩家无需再手动解压。
+
+### 使用内置离线翻译
+
+完整包已包含 LibreTranslate、独立 Python 运行时和英中模型。**玩家不需要另装 LibreTranslate、Python 或 Docker，也不需要 API Key，运行时可以断网。**
+
+在 `Provider` 页选择 **LibreTranslate**，勾选 **Use bundled offline engine (Windows, English to Chinese)**。源语言填 `English`，目标语言填 `ChineseSimplified`。第一次发起翻译时会在后台加载模型，只监听本机回环地址；退出游戏时会停止引擎进程。
+
+当前内置引擎仅支持 **Windows x64、英文 → 简体中文**。其他语言或翻译服务可以使用 OpenAI 兼容 API、外部 LibreTranslate，或已配置好的 Lara SDK 本地桥接。详细的离线包说明和日志位置见 [LocalEngine/README.md](LocalEngine/README.md)。
+
+### 自带译文优先、DLC 排除与跳过选项
+
+**已有的有效目标语言译文始终优先，翻译器只补缺失文本。** 对于支持的文本字段，作者自带译文以及游戏已加载的独立汉化模组译文，不会被机器翻译、旧缓存、预览手动替换或生成的导出条目覆盖。
+
+RimWorld 本体和官方 DLC 不会出现在可选模组中，也不会进入翻译或词汇扫描；旧设置中残留的官方内容选择会被清理。
+
+任务页默认开启 **Skip mods with bundled Chinese translations (entire mod, even if partial)**，即“跳过自带中文的整个模组”。识别当前有效版本目录中的标准中文 Keyed/DefInjected XML，空目录、空白和 TODO 文件不会单独触发跳过；简体与繁体分别识别。
+
+如果某个模组只有部分汉化，可以关闭这个选项来补齐缺失条目。**关闭整模组跳过，也不会覆盖已有译文。** 自带中文的模组仍能在模组页勾选，供词汇库导入使用。
+
+另一个默认开启的选项 **Skip completed translations (reuse valid cache)** 用于复用已完成的有效缓存，减少重复请求。关闭后会重新翻译未受自带译文保护的条目，并可能替换已有自动或手动缓存结果。
+
+### 扫描、导入和维护词汇库
+
+词汇库用于统一 `pawn`、武器、建筑等词语的译法。默认已有 `pawn` / `pawns` → “小人”，玩家可以修改。建议先整理词汇库，再开始正文翻译。
+
+- **扫描常见英文词**：选好模组，进入 `Glossary` 页，点击 **Scan selected mods (English candidates)**。它扫描模组英文文件，过滤常见介词、连词及格式变量，把至少出现两次的词加入候选。空白译法不会参与替换。
+- **导入模组自带中文术语**：源语言设为 `English` 或 `Auto`，目标设为对应的简体或繁体中文，点击 **Import glossary from selected mods with bundled Chinese translations**。此功能本地运行，不调用 API；按相同 XML 键配对英文与中文，提取短词或短语。
+- **翻译缺少译法的词条**：点击 **Translate missing glossary terms (current provider)**，使用当前选择的翻译服务处理空白词条。已有译法会保留。
+- **手动维护**：搜索词条、修改译法，或使用 **Add / update term** 添加词和短语。清空译法表示停用该条规则，**Remove** 可以删除词条。
+
+自带术语导入只添加新词或填补空白，不覆盖默认词条或玩家已有译法；同一英文出现不同中文译法时不自动导入。简繁体不会混合。导入的短语最多六个英文单词、64 个字符，不从长句中猜测单个单词的对应关系，也不提取只有继承结果而无匹配源文件的标签、非 XML Strings 或缺少对应英文文件的独立汉化包。
+
+词汇修改影响后续新任务；已开始的正文任务保持启动时的语言、服务和词汇规则。**Batch size (next request)** 是实时设置，修改后从下一批请求生效，已经发送的请求不会被拆分。
+
+### 原文保留、缓存与导出
+
+译文的标签、变量和格式占位符会被保护；缺失或重复占位符的响应会被拒绝。请求失败、结果缺失、纯空白、零宽字符或空格式标签不会作为正常译文覆盖游戏文本。明确的 API 过滤或拒译响应会记录为失败，保留已有文本。翻译器自身不进行内容消音，但无法保证外部服务不会拒译或返回非空的错误译文。
+
+可以在 `Preview` 页查看和修改缓存译文；清空自动译文会恢复原始文本。已有自带译文仍受优先级保护。缓存位于 RimWorld 配置目录的 `RuntimeTranslator/cache.xml`，保存时保留备份，取消任务不会清空已经保存的结果。
+
+开启导出后，会在配置目录的 `RuntimeTranslator/GeneratedLanguages/<目标语言>/` 下生成标准语言 XML。导出会排除与已有自带译文冲突的条目，并更新或清理自己生成的 `RuntimeTranslator.xml`；手动维护的文件应使用其他名称。生成目录不是自动启用的独立汉化模组，按需复制到合适的语言目录或自行整理为汉化模组。
+
+退出游戏会中断请求和后台任务；已经保存的批次保留，退出前尚未保存的部分可能需要重新翻译。
+
+### 当前范围与验证情况
+
+目前主要处理已加载 Def 的 `label`、`description`、`jobString`、`deathMessage`、`gerund` 和 `reportString`，以及本模组自身的 Keyed 设置界面。它还不能覆盖其他模组所有硬编码界面、动态生成文本或所有 Keyed 调用。
+
+当前版本已通过编译和自动回归检查，但仍需在实际游戏及具体模组组合中验证。翻译质量需要玩家校对，内置离线引擎对被标签、术语分割的句子和英文缩写可能处理得不够自然。
+
+### 我们的代码与第三方许可
+
+我们编写的模组主体、测试及构建工具采用 **GPL-3.0-only**，C# 模组附有范围有限的 [RimWorld/Unity 链接例外](LICENSE-EXCEPTION.md)。**LibreTranslate 保持 AGPL-3.0，本地服务集成 `LocalEngine/serve.py` 采用 AGPL-3.0-only**；模型、Python 和其他依赖保留各自许可与署名。
+
+分发时应保留许可证、署名和与二进制匹配的对应源码资料。具体范围见 [LICENSING.md](LICENSING.md)，第三方组件及模型来源见 [THIRD_PARTY_NOTICES.md](LocalEngine/THIRD_PARTY_NOTICES.md)。
+
+---
+
+## English Guide
+
 Gesvd’s RimLingo is a RimWorld internal mod prototype that translates loaded mods from an in-game settings panel.
 
 It is intentionally idle at startup: it loads settings and cache metadata only. Network connections and text scanning start after the player presses **Start translation**.
