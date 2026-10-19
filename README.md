@@ -1,5 +1,7 @@
 # Gesvd’s RimLingo: a runtime translator for RimWorld
 
+![Gesvd’s RimLingo cover](About/Preview.png)
+
 Authors: Gesvd & Codex.
 
 作者：Gesvd & Codex。以下为中文使用说明，后面保留英文说明和接口细节。
