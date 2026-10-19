@@ -27,27 +27,54 @@ namespace RuntimeTranslator.Tests
             Verse.GenFilePaths.ConfigFolderPath = folder;
             Verse.ModContentPack pack = new Verse.ModContentPack
             {
-                PackageIdPlayerFacing = "codex.runtime.translator", Name = XDocument.Load(Path.Combine(ProjectRoot, "About", "About.xml")).Root.Element("name").Value, RootDir = ProjectRoot,
+                PackageIdPlayerFacing = RuntimeTranslatorSettings.PackageId, Name = XDocument.Load(Path.Combine(ProjectRoot, "About", "About.xml")).Root.Element("name").Value, RootDir = ProjectRoot,
                 AllDefs = new List<Verse.Def>()
             };
+            Check(XDocument.Load(Path.Combine(ProjectRoot, "About", "About.xml")).Root.Element("packageId").Value == RuntimeTranslatorSettings.PackageId &&
+                RuntimeTranslatorSettings.PackageId == "gesvd.rimlingo", "mod metadata uses the RimLingo package ID");
             UiText.Initialize(pack);
             Verse.LoadedModManager.RunningMods.Clear(); Verse.LoadedModManager.RunningMods.Add(pack);
             RuntimeTranslatorSettings settings = new RuntimeTranslatorSettings
             {
                 SelectedPackageIds = new List<string> { pack.PackageIdPlayerFacing }, ApplyRuntimeTranslations = false, ExportLanguageFiles = false
             };
+            XElement english = XDocument.Load(Path.Combine(ProjectRoot, "Languages", "English", "Keyed", "RuntimeTranslator.xml")).Root;
+            XElement chinese = XDocument.Load(Path.Combine(ProjectRoot, "Languages", "ChineseSimplified", "Keyed", "RuntimeTranslator.xml")).Root;
+            Check(english.Elements().Select(element => element.Name).SequenceEqual(chinese.Elements().Select(element => element.Name)) &&
+                chinese.Elements().All(element => TextProtection.HasVisibleText(element.Value)), "official Chinese table covers every English UI key with visible text");
+            Check(english.Elements().All(element => element.Name.LocalName == UiText.Key(element.Value)), "English UI keys remain stable source hashes");
+            TranslationEntry brand = UiText.Scan(pack, settings).Single(entry => entry.SourceText == "Gesvd’s RimLingo");
+            brand.TranslatedText = "错误机器品牌名";
+            UiText.Apply(brand);
+            Verse.LanguageDatabase.activeLanguage = new Verse.LoadedLanguage { folderName = "ChineseSimplified" };
+            foreach (XElement element in chinese.Elements())
+                Verse.LanguageDatabase.activeLanguage.keyedReplacements[element.Name.LocalName] = new Verse.LoadedLanguage.KeyedReplacement { value = element.Value };
+            NativeTranslations.Reset();
+            Check(UiText.Get("Gesvd’s RimLingo") == "Gesvd的边缘翻译", "official Chinese brand overrides an old machine translation");
+            Check(UiText.Get("Task") == "任务" && Enum.GetNames(typeof(TranslationState)).All(state => UiText.Get(state) != state),
+                "Chinese UI translates task labels and every task state");
+            Check(!RuntimeTextApplier.Apply(brand) && UiText.Get("Gesvd’s RimLingo") == "Gesvd的边缘翻译",
+                "stale cached brand cannot overwrite the official Chinese translation");
+            Check(ModTextScanner.Scan(settings).Count == 0, "own bundled Chinese UI is skipped by default");
+            settings.SkipModsWithBundledChinese = false;
+            Check(ModTextScanner.Scan(settings).Count == 0, "disabling whole-mod skipping still protects every official Chinese UI entry");
+            Verse.LanguageDatabase.activeLanguage = null;
+            NativeTranslations.Reset();
+            UiText.Initialize(pack);
+            Check(UiText.Get("Gesvd’s RimLingo") == "Gesvd’s RimLingo", "English fallback preserves the English brand");
+            settings.TargetLanguage = "Japanese";
             List<TranslationEntry> self = ModTextScanner.Scan(settings);
             Check(self.Count >= 80 && self.All(entry => entry.DefTypeName == "Keyed"), "mod's own settings text is scanned without any Defs");
             TranslationEntry task = self.Single(entry => entry.SourceText == "Task");
             string sourceHash = task.SourceHash;
-            task.TranslatedText = "翻译任务";
-            Check(RuntimeTextApplier.Apply(task) && UiText.Get("Task") == "翻译任务", "own UI accepts runtime translations");
+            task.TranslatedText = "翻訳タスク";
+            Check(RuntimeTextApplier.Apply(task) && UiText.Get("Task") == "翻訳タスク", "own UI accepts runtime translations");
             Check(ModTextScanner.Scan(settings).Single(entry => entry.SourceText == "Task").SourceHash == sourceHash,
                 "translated UI still scans its stable English source");
-            LanguageFileExporter.Export(new[] { TranslationCacheRecord.FromEntry(task, "Test") }, "ChineseSimplified");
-            string file = Path.Combine(folder, "RuntimeTranslator", "GeneratedLanguages", "ChineseSimplified", pack.PackageIdPlayerFacing, "Keyed", "RuntimeTranslator.xml");
+            LanguageFileExporter.Export(new[] { TranslationCacheRecord.FromEntry(task, "Test") }, "Japanese");
+            string file = Path.Combine(folder, "RuntimeTranslator", "GeneratedLanguages", "Japanese", pack.PackageIdPlayerFacing, "Keyed", "RuntimeTranslator.xml");
             XElement exported = XDocument.Load(file).Root.Elements().Single();
-            Check(exported.Name.LocalName == UiText.Key("Task") && exported.Value == "翻译任务", "own UI exports standard Keyed XML with correct keys");
+            Check(exported.Name.LocalName == UiText.Key("Task") && exported.Value == "翻訳タスク", "own UI exports standard Keyed XML with correct keys");
             task.TranslatedText = ""; RuntimeTextApplier.Apply(task);
             Check(UiText.Get("Task") == "Task", "clearing an own-UI translation restores the normal language fallback");
             Check(XDocument.Load(Path.Combine(ProjectRoot, "About", "About.xml")).Root.Element("author").Value == "Gesvd & Codex",

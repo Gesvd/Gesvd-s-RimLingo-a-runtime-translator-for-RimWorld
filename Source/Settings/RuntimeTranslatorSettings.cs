@@ -13,6 +13,9 @@ namespace RuntimeTranslator
 
     public sealed class RuntimeTranslatorSettings : ModSettings
     {
+        public const string PackageId = "gesvd.rimlingo";
+        internal const string LegacyPackageId = "codex.runtime.translator";
+
         public string SourceLanguage = "English";
         public string TargetLanguage = "ChineseSimplified";
         public ProviderKind ProviderKind = ProviderKind.OpenAiCompatible;
@@ -73,6 +76,8 @@ namespace RuntimeTranslator
             {
                 SelectedPackageIds = new List<string>();
             }
+            if (SelectedPackageIds.RemoveAll(id => id == LegacyPackageId) > 0 && !SelectedPackageIds.Contains(PackageId))
+                SelectedPackageIds.Add(PackageId);
             if (LaraTranslateUrl == "https://api.laratranslate.com")
             {
                 LaraTranslateUrl = "http://127.0.0.1:8765";

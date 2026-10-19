@@ -240,6 +240,42 @@ namespace RuntimeTranslator.Tests
             recovered.Load();
             Check(recovered.Records.Count == 1, "missing primary cache recovers from backup");
             Check(FileNameSanitizer.Sanitize("..") != "..", "generated folder names cannot traverse to a parent");
+            RuntimeTranslatorSettings legacySettings = new RuntimeTranslatorSettings
+            {
+                SelectedPackageIds = new List<string> { "test.mod", RuntimeTranslatorSettings.LegacyPackageId, RuntimeTranslatorSettings.PackageId },
+                OpenAiApiKey = "retained-test-key", GlossaryTerms = new List<GlossaryTerm> { new GlossaryTerm { Source = "custom", Translation = "自定义" } }
+            };
+            legacySettings.ExposeData();
+            legacySettings.ExposeData();
+            Check(legacySettings.SelectedPackageIds.SequenceEqual(new[] { "test.mod", RuntimeTranslatorSettings.PackageId }) &&
+                legacySettings.OpenAiApiKey == "retained-test-key" && legacySettings.GlossaryTerms.Single().Translation == "自定义",
+                "old self selection migrates without duplication or changes to API settings and glossary");
+            legacySettings.SelectedPackageIds = new List<string> { RuntimeTranslatorSettings.LegacyPackageId };
+            legacySettings.ExposeData();
+            Check(legacySettings.SelectedPackageIds.SequenceEqual(new[] { RuntimeTranslatorSettings.PackageId }), "old-only self selection upgrades to the new package ID");
+            TranslationCacheDocument migration = new TranslationCacheDocument();
+            string suffix = "|Keyed|brand|text|English|Japanese";
+            migration.Entries.Add(new TranslationCacheRecord { Id = RuntimeTranslatorSettings.PackageId + suffix, PackageId = RuntimeTranslatorSettings.PackageId,
+                SourceHash = "hash", Provider = "Test", TranslatedText = "", UpdatedUtcTicks = 20 });
+            migration.Entries.Add(new TranslationCacheRecord { Id = RuntimeTranslatorSettings.LegacyPackageId + suffix, PackageId = RuntimeTranslatorSettings.LegacyPackageId,
+                SourceHash = "hash", Provider = "Test", TranslatedText = "older translation", UpdatedUtcTicks = 10 });
+            migration.Entries.Add(new TranslationCacheRecord { Id = RuntimeTranslatorSettings.LegacyPackageId + "|legacy", PackageId = RuntimeTranslatorSettings.LegacyPackageId,
+                SourceText = "original source", TranslatedText = "retained translation", Provider = "Test" });
+            migration.Entries.Add(new TranslationCacheRecord { Id = "test.mod|existing", PackageId = "test.mod", TranslatedText = "other mod", Provider = "Test" });
+            using (FileStream output = File.Create(cacheFile)) new System.Xml.Serialization.XmlSerializer(typeof(TranslationCacheDocument)).Serialize(output, migration);
+            byte[] legacyBytes = File.ReadAllBytes(cacheFile);
+            TranslationCacheStore migrated = new TranslationCacheStore(); migrated.Load();
+            Check(migrated.Records.Count == 3 && migrated.Records.All(record => record.PackageId != RuntimeTranslatorSettings.LegacyPackageId) &&
+                migrated.Records.Single(record => record.Id == RuntimeTranslatorSettings.PackageId + "|legacy").TranslatedText == "retained translation" &&
+                migrated.Records.Single(record => record.PackageId == "test.mod").Id == "test.mod|existing",
+                "self cache IDs migrate while translations and other mod IDs remain intact");
+            Check(migrated.Records.Single(record => record.Id == RuntimeTranslatorSettings.PackageId + suffix).TranslatedText == "",
+                "newer cleared cache entry wins over an older legacy-ID translation");
+            Check(legacyBytes.SequenceEqual(File.ReadAllBytes(cacheFile)), "cache migration does not rewrite the original file during load");
+            Check(migrated.Save(), "migrated cache saves using the existing atomic backup mechanism");
+            recovered.Load();
+            Check(recovered.Records.Count == 3 && recovered.Records.All(record => record.PackageId != RuntimeTranslatorSettings.LegacyPackageId),
+                "cache migration is stable after save and reload");
             passed += TaskRegressionChecks.Run(Path.Combine(folder, "task-checks"));
             passed += GlossaryChecks.Run(Path.Combine(folder, "glossary-checks"));
             passed += WorkflowChecks.Run(Path.Combine(folder, "workflow-checks"));

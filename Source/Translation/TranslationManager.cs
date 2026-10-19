@@ -59,13 +59,13 @@ namespace RuntimeTranslator
 
             if (worker != null && !worker.IsCompleted)
             {
-                Messages.Message("Gesvd’s RimLingo is already running.", MessageTypeDefOf.RejectInput, false);
+                Messages.Message(UiText.Get("Gesvd’s RimLingo is already running."), MessageTypeDefOf.RejectInput, false);
                 return;
             }
 
             if (settings.SelectedPackageIds == null || settings.SelectedPackageIds.Count == 0)
             {
-                Messages.Message("Select at least one mod before starting translation.", MessageTypeDefOf.RejectInput, false);
+                Messages.Message(UiText.Get("Select at least one mod before starting translation."), MessageTypeDefOf.RejectInput, false);
                 return;
             }
 
@@ -83,7 +83,7 @@ namespace RuntimeTranslator
                 CancellationToken token = cancellation.Token;
                 // Always enter RunWorker so an early cancellation still updates the final status.
                 worker = Task.Run(() => RunWorker(scanned, provider, taskSettings, token));
-                Messages.Message("Gesvd’s RimLingo started. Preparing translation queue.", MessageTypeDefOf.TaskCompletion, false);
+                Messages.Message(UiText.Get("Gesvd’s RimLingo started. Preparing translation queue."), MessageTypeDefOf.TaskCompletion, false);
             }
             catch (Exception ex)
             {
@@ -377,9 +377,9 @@ namespace RuntimeTranslator
             }
         }
 
-        internal static void Notify(string message, bool success)
+        internal static void Notify(string message, bool success, string detail = "")
         {
-            OnMainThread(() => Messages.Message(message,
+            OnMainThread(() => Messages.Message(UiText.Get(message) + detail,
                 success ? MessageTypeDefOf.TaskCompletion : MessageTypeDefOf.RejectInput, false));
         }
 
@@ -407,7 +407,7 @@ namespace RuntimeTranslator
 
         internal static int CurrentBatchSize
         {
-            get { return Math.Max(1, Math.Min(30, Volatile.Read(ref settings.BatchSize))); }
+            get { return Math.Max(1, Volatile.Read(ref settings.BatchSize)); }
         }
 
         private static void QueueApply(TranslationEntry entry)

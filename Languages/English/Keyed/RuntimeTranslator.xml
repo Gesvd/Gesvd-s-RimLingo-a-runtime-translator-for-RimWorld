@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <LanguageData>
   <RT_0595bcf13b85a01b798cc25af744a2c28cf64737>No missing glossary translations for this language pair. Scan mods first or add terms.</RT_0595bcf13b85a01b798cc25af744a2c28cf64737>
   <RT_071ccfac7e74ba7983ec163f0f6a3135dded69df>Cancel glossary translation</RT_071ccfac7e74ba7983ec163f0f6a3135dded69df>
@@ -67,7 +67,7 @@
   <RT_cef6be3f25fe6fe059ab440ff95db1a81d876f6b>Provider: </RT_cef6be3f25fe6fe059ab440ff95db1a81d876f6b>
   <RT_cf678cab87dc1f7d1b95b964f15375e088461679>API key</RT_cf678cab87dc1f7d1b95b964f15375e088461679>
   <RT_d1d02ccc2b04c02cc13499b844997324ac61c5cb>Last error: </RT_d1d02ccc2b04c02cc13499b844997324ac61c5cb>
-  <RT_d605afc60b395984cb64f55b33fbd1e5a4745865>Lara&apos;s official SDK handles authentication and encryption. This RimWorld mod calls a local SDK bridge because the official .NET SDK targets modern .NET, while RimWorld mods target .NET Framework.</RT_d605afc60b395984cb64f55b33fbd1e5a4745865>
+  <RT_d605afc60b395984cb64f55b33fbd1e5a4745865>Lara's official SDK handles authentication and encryption. This RimWorld mod calls a local SDK bridge because the official .NET SDK targets modern .NET, while RimWorld mods target .NET Framework.</RT_d605afc60b395984cb64f55b33fbd1e5a4745865>
   <RT_db07be184479f34078cd4fc76d248dc0975720e9>Languages</RT_db07be184479f34078cd4fc76d248dc0975720e9>
   <RT_de15f753728a08035f3b255ee52f6eb542d0d443>Content type</RT_de15f753728a08035f3b255ee52f6eb542d0d443>
   <RT_de94ee818f9da8293ca58878b85ecf370e433c68>New word / phrase</RT_de94ee818f9da8293ca58878b85ecf370e433c68>
@@ -95,4 +95,25 @@
   <RT_339e657cce6e0ed1f303a5e19a979718996395f9>Bundled glossary import requires English to Simplified or Traditional Chinese.</RT_339e657cce6e0ed1f303a5e19a979718996395f9>
   <RT_1f2c1700378bbfb948ee05b0301810e919d20680>Bundled glossary terms imported: </RT_1f2c1700378bbfb948ee05b0301810e919d20680>
   <RT_66bda41cf2bad796b6600a397900fb60a22634be>Existing target-language translations always take priority. Only missing text is translated.</RT_66bda41cf2bad796b6600a397900fb60a22634be>
+  <RT_cc1ebdd04e76a4b8baffb29a22fa00446d382b18>Idle</RT_cc1ebdd04e76a4b8baffb29a22fa00446d382b18>
+  <RT_e230f66cb2480e61c70e7940e1168e3d3dc1b2cf>Scanning</RT_e230f66cb2480e61c70e7940e1168e3d3dc1b2cf>
+  <RT_73989d9c59264da08a15dba21c7d58237a91f08f>Running</RT_73989d9c59264da08a15dba21c7d58237a91f08f>
+  <RT_c7dfb6f1d9c58a41a7c5eec76e7ed6dbd3750804>Paused</RT_c7dfb6f1d9c58a41a7c5eec76e7ed6dbd3750804>
+  <RT_f683091be681f1f16cb70e2de0209ecd1b5f0248>Cancelling</RT_f683091be681f1f16cb70e2de0209ecd1b5f0248>
+  <RT_1798b3ba42ee08ea09d9720b2d9c0181abbfe3e4>Completed</RT_1798b3ba42ee08ea09d9720b2d9c0181abbfe3e4>
+  <RT_09fef5d8d9a3c86b2523fef60d512606e7fe0003>Failed</RT_09fef5d8d9a3c86b2523fef60d512606e7fe0003>
+  <RT_a1bf92eff40dd4adea2328f9e0f7c938ae031dec>Cancelled</RT_a1bf92eff40dd4adea2328f9e0f7c938ae031dec>
+  <RT_cce69145130ba2e828b5d89969c0d75272488812>OpenAiCompatible</RT_cce69145130ba2e828b5d89969c0d75272488812>
+  <RT_751596ce5a7ab519c4e03eb91055068d2a97fd94>LaraTranslate</RT_751596ce5a7ab519c4e03eb91055068d2a97fd94>
+  <RT_718087a85b988123e4dae15ff87840fb43b8c157>Gesvd’s RimLingo is already running.</RT_718087a85b988123e4dae15ff87840fb43b8c157>
+  <RT_ad6faa19401dc59ccd589e277fab2c475ef3034b>Select at least one mod before starting translation.</RT_ad6faa19401dc59ccd589e277fab2c475ef3034b>
+  <RT_b0f9790d2d1bd9c181512cdc00945d5e1adb7351>Gesvd’s RimLingo started. Preparing translation queue.</RT_b0f9790d2d1bd9c181512cdc00945d5e1adb7351>
+  <RT_419692952d6a72897fa5a55a6fc6b0a84ee7ab5a>Gesvd’s RimLingo could not save its cache. See the log for details.</RT_419692952d6a72897fa5a55a6fc6b0a84ee7ab5a>
+  <RT_a7b49e2ef833b1d579c3e809ff435b1bd0d60b72>Gesvd’s RimLingo exported language files to </RT_a7b49e2ef833b1d579c3e809ff435b1bd0d60b72>
+  <RT_85b6721219a26a04b10e2c3fc144d4b6892e642d>Gesvd’s RimLingo export failed: </RT_85b6721219a26a04b10e2c3fc144d4b6892e642d>
+  <RT_51e9111b87116e60566740d13ba1c1eddb042333>Stopped</RT_51e9111b87116e60566740d13ba1c1eddb042333>
+  <RT_22ee4555f28c66bd6a93e9d62dd07e263509c1f0>Starting local engine</RT_22ee4555f28c66bd6a93e9d62dd07e263509c1f0>
+  <RT_d5379c70ea4200f6397ed3a97c573b2ad6b2a54e>Ready (offline English to Chinese)</RT_d5379c70ea4200f6397ed3a97c573b2ad6b2a54e>
+  <RT_577089002eaa06473557b3a8038406affd904c5b>Stopped / cancelled</RT_577089002eaa06473557b3a8038406affd904c5b>
+  <RT_2ee76a2136ba0543594c6eb0eb4a9fc2ca9826f1>Slider: 1-50. Enter a larger number manually. Very large batches may cause game stuttering or exceed the translation service limits.</RT_2ee76a2136ba0543594c6eb0eb4a9fc2ca9826f1>
 </LanguageData>

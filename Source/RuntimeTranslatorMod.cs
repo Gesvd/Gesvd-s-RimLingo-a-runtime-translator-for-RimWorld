@@ -28,6 +28,7 @@ namespace RuntimeTranslator
         private Vector2 providerScrollPosition;
         private Vector2 previewScrollPosition;
         private Vector2 statusScrollPosition;
+        private string batchSizeBuffer;
         private string modFilter = string.Empty;
         private string previewSearch = string.Empty;
         private string replaceFrom = string.Empty;
@@ -114,7 +115,7 @@ namespace RuntimeTranslator
 
         private void DrawTaskTab(Rect inRect)
         {
-            Listing_Standard listing = BeginScroll(inRect, ref taskScrollPosition, 570f);
+            Listing_Standard listing = BeginScroll(inRect, ref taskScrollPosition, 650f);
             DrawLanguageSection(listing);
             listing.GapLine();
             DrawTaskControls(listing);
@@ -188,7 +189,8 @@ namespace RuntimeTranslator
             listing.Label(UiText.Get("Languages"));
             Settings.SourceLanguage = TextFieldLabeled(listing, UiText.Get("Source language"), Settings.SourceLanguage);
             Settings.TargetLanguage = TextFieldLabeled(listing, UiText.Get("Target language"), Settings.TargetLanguage);
-            Settings.BatchSize = IntSliderLabeled(listing, UiText.Get("Batch size (next request)"), Settings.BatchSize, 1, 30);
+            Settings.BatchSize = IntSliderLabeled(listing, UiText.Get("Batch size (next request)"), Settings.BatchSize, 1, 50, ref batchSizeBuffer);
+            listing.Label(UiText.Get("Slider: 1-50. Enter a larger number manually. Very large batches may cause game stuttering or exceed the translation service limits."));
             Settings.SkipCompletedTranslations = listing.CheckboxLabeledReturn(UiText.Get("Skip completed translations (reuse valid cache)"), Settings.SkipCompletedTranslations);
             Settings.SkipModsWithBundledChinese = listing.CheckboxLabeledReturn(UiText.Get("Skip mods with bundled Chinese translations (entire mod, even if partial)"), Settings.SkipModsWithBundledChinese);
             listing.Label(UiText.Get("Existing target-language translations always take priority. Only missing text is translated."));
@@ -199,11 +201,11 @@ namespace RuntimeTranslator
         private void DrawProviderSection(Listing_Standard listing)
         {
             listing.Label(UiText.Get("Provider"));
-            if (listing.ButtonText(UiText.Get("Provider: ") + Settings.ProviderKind))
+            if (listing.ButtonText(UiText.Get("Provider: ") + UiText.Get(Settings.ProviderKind.ToString())))
             {
                 List<FloatMenuOption> options = Enum.GetValues(typeof(ProviderKind))
                     .Cast<ProviderKind>()
-                    .Select(kind => new FloatMenuOption(kind.ToString(), () => Settings.ProviderKind = kind))
+                    .Select(kind => new FloatMenuOption(UiText.Get(kind.ToString()), () => Settings.ProviderKind = kind))
                     .ToList();
                 Find.WindowStack.Add(new FloatMenu(options));
             }
@@ -239,7 +241,7 @@ namespace RuntimeTranslator
             if (Settings.UseBundledLibreTranslate)
             {
                 listing.Label(UiText.Get("Starts on the first translation request. No API key required."));
-                listing.Label(BundledLibreTranslate.Status);
+                listing.Label(UiText.Get(BundledLibreTranslate.Status));
                 listing.Label(UiText.Get("License: AGPL-3.0. Source and notices: LocalEngine/sources.zip"));
                 return;
             }
@@ -510,7 +512,7 @@ namespace RuntimeTranslator
         private void DrawStatus(Listing_Standard listing)
         {
             TranslationStatus status = TranslationManager.Status;
-            listing.Label(UiText.Get("Status: ") + status.State);
+            listing.Label(UiText.Get("Status: ") + UiText.Get(status.State.ToString()));
             listing.Label(UiText.Get("Progress: ") + status.Completed + " / " + status.Total + UiText.Get("  Failed: ") + status.Failed + UiText.Get("  Skipped: ") + status.Skipped);
             listing.Label(UiText.Get("Current: ") + status.CurrentItem);
             if (!string.IsNullOrWhiteSpace(status.LastError))
@@ -542,10 +544,16 @@ namespace RuntimeTranslator
             return Widgets.TextArea(new Rect(rect.x + 220f, rect.y, rect.width - 220f, rect.height), value ?? string.Empty);
         }
 
-        private static int IntSliderLabeled(Listing_Standard listing, string label, int value, int min, int max)
+        private static int IntSliderLabeled(Listing_Standard listing, string label, int value, int min, int max, ref string buffer)
         {
-            listing.Label(label + ": " + value);
-            return Mathf.RoundToInt(listing.Slider(value, min, max));
+            Rect row = listing.GetRect(30f);
+            Widgets.Label(new Rect(row.x, row.y, row.width - 106f, row.height), label);
+            Widgets.TextFieldNumeric(new Rect(row.xMax - 100f, row.y, 100f, row.height), ref value, ref buffer, min, float.MaxValue);
+            int sliderValue = Math.Min(max, Math.Max(min, value));
+            int next = Mathf.RoundToInt(listing.Slider(sliderValue, min, max));
+            // Preserve manually entered values above the slider range until the slider moves.
+            if (next != sliderValue) { value = next; buffer = value.ToString(); }
+            return Math.Max(min, value);
         }
     }
 }

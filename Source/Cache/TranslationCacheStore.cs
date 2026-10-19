@@ -67,7 +67,16 @@ namespace RuntimeTranslator
                 {
                     if (record != null && !string.IsNullOrWhiteSpace(record.Id))
                     {
-                        records[Key(record.Id, record.SourceHash, record.Provider)] = record;
+                        if (record.PackageId == RuntimeTranslatorSettings.LegacyPackageId)
+                        {
+                            string prefix = RuntimeTranslatorSettings.LegacyPackageId + "|";
+                            if (record.Id.StartsWith(prefix, StringComparison.Ordinal))
+                                record.Id = RuntimeTranslatorSettings.PackageId + record.Id.Substring(prefix.Length - 1);
+                            record.PackageId = RuntimeTranslatorSettings.PackageId;
+                        }
+                        string key = Key(record.Id, record.SourceHash, record.Provider);
+                        if (!records.TryGetValue(key, out TranslationCacheRecord existing) || record.UpdatedUtcTicks >= existing.UpdatedUtcTicks)
+                            records[key] = record;
                     }
                 }
             }

@@ -8,15 +8,19 @@ Authors: Gesvd & Codex.
 
 ## 中文使用说明
 
-Gesvd’s RimLingo 是一个在 RimWorld 游戏内运行的模组翻译器。玩家可以选择已加载的模组，通过内置离线引擎或自己配置的翻译 API 补充翻译，并用词汇库统一术语、手动修改结果。它不会在游戏启动时自动联网或开始翻译任务。
+**Gesvd的边缘翻译**（英文名 Gesvd’s RimLingo）是一个在 RimWorld 游戏内运行的模组翻译器。玩家可以选择已加载的模组，通过内置离线引擎或自己配置的翻译 API 补充翻译，并用词汇库统一术语、手动修改结果。它不会在游戏启动时自动联网或开始翻译任务。
+
+模组包 ID 为 `gesvd.rimlingo`。更新后会自动迁移旧版的自身选择记录和自身翻译缓存；API 设置、词汇库及其他模组的翻译缓存继续保留。请在原模组文件夹中更新，以继续使用原设置文件。旧存档或模组列表可能提示包 ID 变化，在模组管理中重新启用本模组即可；依赖本模组的第三方配置也应更新引用。
 
 ### 安装与首次使用
 
 1. 下载完整安装包 **`Gesvds-RimLingo-LibreTranslate-win64.zip`**。GitHub 的 **Code → Download ZIP** 是源码包，不含大型离线运行文件；普通玩家应使用完整安装包，无需自行编译 DLL。
 2. 手动安装时，将解压出来的 **`RimLingo` 文件夹**放入 RimWorld 的 `Mods` 目录。进入该文件夹后，应直接看到 `About`、`Assemblies`、`Languages` 和 `LocalEngine`，不要再多套一层目录。
 3. 在游戏模组列表中启用 **Gesvd’s RimLingo: a runtime translator for RimWorld**，按游戏提示重新加载。
-4. 打开 **选项 → 模组设置 → Gesvd’s RimLingo**。`Task` 是任务页，`Mods` 是模组选择页，`Provider` 是翻译服务页，`Preview` 是译文预览页，`Status` 是状态页，`Glossary` 是词汇库页。
+4. 打开 **选项 → 模组设置 → Gesvd的边缘翻译**。游戏使用简体中文时，会自动显示内置的官方中文界面，无需先启动机器翻译。界面分为任务、模组、翻译服务、译文预览、状态和词汇库。英文游戏界面中仍显示 Gesvd’s RimLingo。
 5. 在模组页勾选要处理的模组，在任务页填写源语言和目标语言，在服务页选择翻译方式，再点击开始。任务可以暂停、继续或取消。
+
+单次最大翻译数支持滑动条和数值输入：滑动条范围为 **1–50**，手动输入可以超过 50（仅限正整数）。修改会从下一次请求起生效，正文与词汇库翻译均适用。过大的数值可能导致游戏卡顿，或超出翻译服务的请求限制；请按实际情况逐步增加。
 
 发布到 Steam 创意工坊时，作者应上传完整包解压后的 `RimLingo` 模组目录，并保留许可及源码资料。正确上传完整目录后，订阅玩家无需再手动解压。
 
@@ -107,7 +111,7 @@ It is intentionally idle at startup: it loads settings and cache metadata only. 
 6. Choose provider settings, target language, and the loaded mods to translate.
 7. Press **Start**. Use **Pause**, **Resume**, or **Cancel** as needed.
 
-Each task keeps the language, provider, glossary, skip-completed choice, and apply/export settings it had when **Start** was pressed. Changes to those settings affect the next task. **Batch size** is live: the next batch uses the current value, including after resuming a paused task; an already-sent request keeps its original size. Manual preview edits use the current apply setting.
+Each task keeps the language, provider, glossary, skip-completed choice, and apply/export settings it had when **Start** was pressed. Changes to those settings affect the next task. The batch-size slider ranges from 1 to 50; the numeric field accepts larger positive integers. Very large batches may cause game stuttering or exceed provider request limits. This applies to both text and glossary translation. **Batch size** is live: the next batch uses the current value, including after resuming a paused task; an already-sent request keeps its original size. Manual preview edits use the current apply setting.
 
 **Skip completed translations** is enabled by default. It excludes valid completed entries from API requests and from the pending task total, while applying cached results to the game. The status shows the skipped count separately. Valid cached results can be reused across providers; the selected provider is preferred, otherwise the latest available record is used. Cleared preferred records, changed source text, and changed applicable glossary rules still need translation. Turning this option off retranslates all selected entries and can overwrite earlier automatic or manual translations.
 
@@ -125,7 +129,7 @@ Preview's **Replace next 50** processes each matching record once per operation,
 
 ## Translating This Mod
 
-Gesvd’s RimLingo now appears in its own **Mods** list. Select it and start a translation task to translate the settings interface. The English UI table is in `Languages/English/Keyed/RuntimeTranslator.xml`; its 95 entries support runtime editing/caching and standard `Keyed` export. Its source table remains English even after the interface is translated. Game/provider IDs and diagnostic log messages are not all localized.
+The official Simplified Chinese UI is bundled in `Languages/ChineseSimplified/Keyed/RuntimeTranslator.xml` and follows the game language automatically. Its Chinese brand name is **Gesvd的边缘翻译**. Native translations take priority over old machine-translation caches; the mod skips its own translated UI when targeting Simplified Chinese. Other target languages can still translate its settings by selecting this mod in **Mods**. The English source table remains in `Languages/English/Keyed/RuntimeTranslator.xml`; both tables contain 116 matching keys. The package ID is `gesvd.rimlingo`; cache paths and diagnostic identifiers remain unchanged. Older self-selection and self-translation cache IDs are migrated automatically.
 
 ## Interrupting Work On Exit
 

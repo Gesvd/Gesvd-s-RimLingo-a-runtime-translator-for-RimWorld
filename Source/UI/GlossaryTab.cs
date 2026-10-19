@@ -116,7 +116,7 @@ namespace RuntimeTranslator
                 }
                 TranslationManager.OnMainThread(() =>
                 {
-                    glossaryTranslationStatus = UiText.Get("Glossary: ") + result.State + UiText.Get(". Saved: ") + glossaryTranslationsApplied +
+                    glossaryTranslationStatus = UiText.Get("Glossary: ") + UiText.Get(result.State.ToString()) + UiText.Get(". Saved: ") + glossaryTranslationsApplied +
                         UiText.Get("; Failed: ") + result.Failed + (string.IsNullOrEmpty(result.LastError) ? "" : ". " + result.LastError);
                     glossaryTranslationCancellation = null;
                     job.Dispose();

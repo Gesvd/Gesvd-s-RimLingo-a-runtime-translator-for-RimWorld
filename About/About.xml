@@ -2,12 +2,14 @@
 <ModMetaData>
   <name>Gesvd’s RimLingo: a runtime translator for RimWorld</name>
   <author>Gesvd &amp; Codex</author>
-  <packageId>codex.runtime.translator</packageId>
+  <packageId>gesvd.rimlingo</packageId>
   <supportedVersions>
     <li>1.5</li>
     <li>1.6</li>
   </supportedVersions>
   <description>
+    Gesvd的边缘翻译：RimWorld 游戏内模组翻译器。内置官方简体中文界面，支持离线翻译、API 翻译、词汇统一及手动修正。
+
     Translate loaded RimWorld mods during runtime from an in-game settings panel.
 
     The mod does not connect to any translation service during game startup. Players choose which loaded mods to translate, select a provider and target language, then start or pause translation manually.

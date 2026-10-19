@@ -36,7 +36,7 @@ namespace RuntimeTranslator
                 for (int offset = 0; offset < pending.Count;)
                 {
                     token.ThrowIfCancellationRequested();
-                    int count = Math.Min(Math.Max(1, Math.Min(30, batchSize())), pending.Count - offset);
+                    int count = Math.Min(Math.Max(1, batchSize()), pending.Count - offset);
                     List<GlossaryTerm> batch = pending.GetRange(offset, count);
                     List<TranslationEntry> entries = batch.Select((term, index) => new TranslationEntry
                     {

@@ -129,6 +129,44 @@ namespace RuntimeTranslator.Tests
             glossary.GlossaryTerms.Remove(removed);
             Check(GlossaryTranslator.ApplyBatch(glossary, new[] { new GlossaryTerm { Source = removed.Source, Translation = "late result" } }) == 0,
                 "late glossary results do not recreate a removed term");
+            live.BatchSize = 2;
+            live.SkipCompletedTranslations = false;
+            TranslationManager.Initialize(live);
+            List<TranslationEntry> large = Enumerable.Range(0, 122).Select(index => new TranslationEntry
+            {
+                Id = "large-batch-" + index, SourceHash = "hash", SourceText = "word" + index,
+                SourceLanguage = "English", TargetLanguage = "ChineseSimplified"
+            }).ToList();
+            probe = new BatchProbeProvider { OnRequest = number => { if (number == 1) live.BatchSize = 75; } };
+            Worker(large, probe, live.Snapshot());
+            Check(probe.Sizes.SequenceEqual(new[] { 2, 75, 45 }), "live batch size can exceed 50 on the next text request");
+            live.BatchSize = 50; probe = new BatchProbeProvider();
+            Worker(large, probe, live.Snapshot());
+            Check(probe.Sizes.SequenceEqual(new[] { 50, 50, 22 }), "slider maximum 50 is honored by the text worker");
+            live.BatchSize = int.MaxValue; probe = new BatchProbeProvider();
+            Worker(large, probe, live.Snapshot());
+            Check(probe.Sizes.SequenceEqual(new[] { 122 }), "very large manual batch is limited to the remaining entries without overflow");
+            foreach (int invalidSize in new[] { 0, -5 })
+            {
+                live.BatchSize = invalidSize; probe = new BatchProbeProvider();
+                Worker(large.Take(2).ToList(), probe, live.Snapshot());
+                Check(probe.Sizes.SequenceEqual(new[] { 1, 1 }), "nonpositive text batch falls back to one: " + invalidSize);
+            }
+            RuntimeTranslatorSettings largeGlossary = new RuntimeTranslatorSettings
+            {
+                GlossaryTerms = Enumerable.Range(0, 122).Select(index => new GlossaryTerm { Source = "large term " + index }).ToList()
+            };
+            size = 2;
+            probe = new BatchProbeProvider { OnRequest = number => { if (number == 1) size = 75; } };
+            result = GlossaryTranslator.TranslateAsync(largeGlossary, probe, () => size, batch => { }, CancellationToken.None).GetAwaiter().GetResult();
+            Check(result.Completed == 122 && probe.Sizes.SequenceEqual(new[] { 2, 75, 45 }), "glossary requests also accept live values above 50");
+            probe = new BatchProbeProvider();
+            result = GlossaryTranslator.TranslateAsync(largeGlossary, probe, () => int.MaxValue, batch => { }, CancellationToken.None).GetAwaiter().GetResult();
+            Check(result.Completed == 122 && probe.Sizes.SequenceEqual(new[] { 122 }), "very large glossary batch is limited to remaining terms without overflow");
+            largeGlossary.GlossaryTerms = largeGlossary.GlossaryTerms.Take(2).ToList();
+            probe = new BatchProbeProvider();
+            result = GlossaryTranslator.TranslateAsync(largeGlossary, probe, () => 0, batch => { }, CancellationToken.None).GetAwaiter().GetResult();
+            Check(result.Completed == 2 && probe.Sizes.SequenceEqual(new[] { 1, 1 }), "nonpositive glossary batch falls back to one");
             return passed;
         }
     }
