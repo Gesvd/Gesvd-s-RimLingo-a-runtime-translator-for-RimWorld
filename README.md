@@ -1,8 +1,8 @@
-# Runtime Translator
+# Gesvd’s RimLingo: a runtime translator for RimWorld
 
 Authors: Gesvd & Codex.
 
-Runtime Translator is a RimWorld internal mod prototype that translates loaded mods from an in-game settings panel.
+Gesvd’s RimLingo is a RimWorld internal mod prototype that translates loaded mods from an in-game settings panel.
 
 It is intentionally idle at startup: it loads settings and cache metadata only. Network connections and text scanning start after the player presses **Start translation**.
 
@@ -24,9 +24,9 @@ It is intentionally idle at startup: it loads settings and cache metadata only. 
 
 1. Build the DLL into `Assemblies/RuntimeTranslator.dll`.
 2. Place this folder under RimWorld's `Mods` directory.
-3. Enable **Runtime Translator** in RimWorld's mod list.
+3. Enable **Gesvd’s RimLingo: a runtime translator for RimWorld** in RimWorld's mod list.
 4. Start RimWorld normally. The mod stays idle during startup.
-5. Open **Options > Mod Settings > Runtime Translator**.
+5. Open **Options > Mod Settings > Gesvd’s RimLingo**.
 6. Choose provider settings, target language, and the loaded mods to translate.
 7. Press **Start**. Use **Pause**, **Resume**, or **Cancel** as needed.
 
@@ -48,7 +48,7 @@ Preview's **Replace next 50** processes each matching record once per operation,
 
 ## Translating This Mod
 
-Runtime Translator now appears in its own **Mods** list. Select it and start a translation task to translate the settings interface. The English UI table is in `Languages/English/Keyed/RuntimeTranslator.xml`; its 88 entries support runtime editing/caching and standard `Keyed` export. Its source table remains English even after the interface is translated. Game/provider IDs and diagnostic log messages are not all localized.
+Gesvd’s RimLingo now appears in its own **Mods** list. Select it and start a translation task to translate the settings interface. The English UI table is in `Languages/English/Keyed/RuntimeTranslator.xml`; its 88 entries support runtime editing/caching and standard `Keyed` export. Its source table remains English even after the interface is translated. Game/provider IDs and diagnostic log messages are not all localized.
 
 ## Interrupting Work On Exit
 

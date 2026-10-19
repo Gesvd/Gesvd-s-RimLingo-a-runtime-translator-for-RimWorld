@@ -27,7 +27,7 @@ namespace RuntimeTranslator.Tests
             Verse.GenFilePaths.ConfigFolderPath = folder;
             Verse.ModContentPack pack = new Verse.ModContentPack
             {
-                PackageIdPlayerFacing = "codex.runtime.translator", Name = "Runtime Translator", RootDir = ProjectRoot,
+                PackageIdPlayerFacing = "codex.runtime.translator", Name = XDocument.Load(Path.Combine(ProjectRoot, "About", "About.xml")).Root.Element("name").Value, RootDir = ProjectRoot,
                 AllDefs = new List<Verse.Def>()
             };
             UiText.Initialize(pack);

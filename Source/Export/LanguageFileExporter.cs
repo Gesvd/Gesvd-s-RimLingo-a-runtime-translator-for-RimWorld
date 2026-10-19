@@ -59,13 +59,13 @@ namespace RuntimeTranslator
                         }
                     }
                 }
-                TranslationManager.Notify("Runtime Translator exported language files to " + root, true);
+                TranslationManager.Notify("Gesvd’s RimLingo exported language files to " + root, true);
             }
             catch (OperationCanceledException) { throw; }
             catch (Exception ex)
             {
                 Log.Error("[RuntimeTranslator] Export failed: " + ex);
-                TranslationManager.Notify("Runtime Translator export failed: " + ex.Message, false);
+                TranslationManager.Notify("Gesvd’s RimLingo export failed: " + ex.Message, false);
             }
         }
 

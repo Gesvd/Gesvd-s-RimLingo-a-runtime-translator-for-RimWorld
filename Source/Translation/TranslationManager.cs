@@ -58,7 +58,7 @@ namespace RuntimeTranslator
 
             if (worker != null && !worker.IsCompleted)
             {
-                Messages.Message("Runtime Translator is already running.", MessageTypeDefOf.RejectInput, false);
+                Messages.Message("Gesvd’s RimLingo is already running.", MessageTypeDefOf.RejectInput, false);
                 return;
             }
 
@@ -82,7 +82,7 @@ namespace RuntimeTranslator
                 CancellationToken token = cancellation.Token;
                 // Always enter RunWorker so an early cancellation still updates the final status.
                 worker = Task.Run(() => RunWorker(scanned, provider, taskSettings, token));
-                Messages.Message("Runtime Translator started. Preparing translation queue.", MessageTypeDefOf.TaskCompletion, false);
+                Messages.Message("Gesvd’s RimLingo started. Preparing translation queue.", MessageTypeDefOf.TaskCompletion, false);
             }
             catch (Exception ex)
             {
@@ -161,7 +161,7 @@ namespace RuntimeTranslator
                     if (!cache.Save())
                     {
                         UpdateError("Could not save translation cache. The previous file was preserved.");
-                        Notify("Runtime Translator could not save its cache. See the log for details.", false);
+                        Notify("Gesvd’s RimLingo could not save its cache. See the log for details.", false);
                     }
                 }
             }

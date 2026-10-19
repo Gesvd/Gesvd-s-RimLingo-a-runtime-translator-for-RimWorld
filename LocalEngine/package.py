@@ -6,7 +6,7 @@ import zipfile
 
 ENGINE = Path(__file__).resolve().parent
 ROOT = ENGINE.parent
-OUTPUT = ROOT / 'Releases' / 'RuntimeTranslator-LibreTranslate-win64.zip'
+OUTPUT = ROOT / 'Releases' / 'Gesvds-RimLingo-LibreTranslate-win64.zip'
 
 
 def main():
@@ -26,11 +26,11 @@ def main():
     temporary = OUTPUT.with_suffix('.tmp')
     with zipfile.ZipFile(temporary, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=1) as archive:
         for path in sorted(set(files)):
-            archive.write(path, 'RuntimeTranslator/' + path.relative_to(ROOT).as_posix())
+            archive.write(path, 'RimLingo/' + path.relative_to(ROOT).as_posix())
     with zipfile.ZipFile(temporary) as archive:
         names = archive.namelist()
-        assert 'RuntimeTranslator/LocalEngine/serve.py' in names
-        assert 'RuntimeTranslator/LocalEngine/sources.zip' in names
+        assert 'RimLingo/LocalEngine/serve.py' in names
+        assert 'RimLingo/LocalEngine/sources.zip' in names
         assert not any('build-cache/' in name or '/stanza/' in name or '/minisbd/en.onnx' in name or name.endswith('Assembly-CSharp.dll') for name in names)
         assert not any(name.endswith('cudnn64_9.dll') for name in names)
         assert archive.testzip() is None

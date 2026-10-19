@@ -52,7 +52,7 @@ namespace RuntimeTranslator
 
         public override string SettingsCategory()
         {
-            return UiText.Get("Runtime Translator");
+            return UiText.Get("Gesvd’s RimLingo");
         }
 
         public override void DoSettingsWindowContents(Rect inRect)
@@ -350,7 +350,7 @@ namespace RuntimeTranslator
                     replaceTo,
                     50,
                     replacedPreviewKeys);
-                Messages.Message(UiText.Get("Runtime Translator replaced ") + changed + UiText.Get(" cached translations."), MessageTypeDefOf.TaskCompletion, false);
+                Messages.Message(UiText.Get("Gesvd’s RimLingo replaced ") + changed + UiText.Get(" cached translations."), MessageTypeDefOf.TaskCompletion, false);
             }
 
             int replaceRemaining = string.IsNullOrEmpty(replaceFrom) || replaceFrom == replaceTo

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ModMetaData>
-  <name>Runtime Translator</name>
+  <name>Gesvd’s RimLingo: a runtime translator for RimWorld</name>
   <author>Gesvd &amp; Codex</author>
   <packageId>codex.runtime.translator</packageId>
   <supportedVersions>
