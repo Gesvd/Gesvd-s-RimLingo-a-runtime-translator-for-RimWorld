@@ -50,7 +50,7 @@ namespace RuntimeTranslator
             cache.Load();
         }
 
-        public static void Start()
+        public static void Start(bool applyGlossary = false)
         {
             if (settings == null || TranslationLifetime.IsStopping)
             {
@@ -63,7 +63,7 @@ namespace RuntimeTranslator
                 return;
             }
 
-            if (settings.SelectedPackageIds == null || settings.SelectedPackageIds.Count == 0)
+            if (!applyGlossary && (settings.SelectedPackageIds == null || settings.SelectedPackageIds.Count == 0))
             {
                 Messages.Message(UiText.Get("Select at least one mod before starting translation."), MessageTypeDefOf.RejectInput, false);
                 return;
@@ -77,12 +77,22 @@ namespace RuntimeTranslator
             try
             {
                 RuntimeTranslatorSettings taskSettings = settings.Snapshot();
-                List<TranslationEntry> scanned = ModTextScanner.Scan(taskSettings);
+                List<TranslationEntry> scanned = applyGlossary ? GlossaryRefreshEntries(taskSettings) : ModTextScanner.Scan(taskSettings);
+                if (applyGlossary)
+                {
+                    taskSettings.SkipCompletedTranslations = false;
+                    if (scanned.Count == 0)
+                    {
+                        SetStatus(TranslationState.Completed, 0, 0, 0, "Done", string.Empty);
+                        Messages.Message(UiText.Get("No cached translations match the active glossary and language pair."), MessageTypeDefOf.RejectInput, false);
+                        return;
+                    }
+                }
                 SetStatus(TranslationState.Running, scanned.Count, 0, 0, "Preparing queue", string.Empty);
                 ITranslationProvider provider = ProviderFactory.Create(taskSettings);
                 CancellationToken token = cancellation.Token;
                 // Always enter RunWorker so an early cancellation still updates the final status.
-                worker = Task.Run(() => RunWorker(scanned, provider, taskSettings, token));
+                worker = Task.Run(() => RunWorker(scanned, provider, taskSettings, token, applyGlossary));
                 Messages.Message(UiText.Get("Gesvd’s RimLingo started. Preparing translation queue."), MessageTypeDefOf.TaskCompletion, false);
             }
             catch (Exception ex)
@@ -90,6 +100,33 @@ namespace RuntimeTranslator
                 SetStatus(TranslationState.Failed, 0, 0, 0, string.Empty, ex.Message);
                 Log.Error("[RuntimeTranslator] Failed to start: " + ex);
             }
+        }
+
+        internal static List<TranslationEntry> GlossaryRefreshEntries(RuntimeTranslatorSettings options)
+        {
+            NativeTranslations.Prepare(options.TargetLanguage);
+            List<GlossaryTerm> terms = Glossary.ForLanguages(options, options.SourceLanguage, options.TargetLanguage);
+            List<TranslationEntry> entries = new List<TranslationEntry>();
+            RuntimeTranslatorSettings scan = options.Snapshot();
+            scan.SelectedPackageIds = LoadedModManager.RunningMods.Where(ModTextScanner.IsPlayerMod).Select(pack => pack.PackageIdPlayerFacing).ToList();
+            scan.SkipModsWithBundledChinese = false;
+            HashSet<string> currentSources = new HashSet<string>(ModTextScanner.Scan(scan).Select(entry =>
+                string.Join("|", entry.PackageId, entry.DefTypeName, entry.DefName, entry.FieldName, entry.SourceText)));
+            foreach (TranslationCacheRecord record in GetCachedTranslationsSnapshot()
+                .Where(record => Glossary.LanguageKey(record.SourceLanguage) == Glossary.LanguageKey(options.SourceLanguage) &&
+                    Glossary.LanguageKey(record.TargetLanguage) == Glossary.LanguageKey(options.TargetLanguage))
+                .GroupBy(record => record.Id).Select(group => group.OrderByDescending(record => record.UpdatedUtcTicks).First()))
+            {
+                if (!TextProtection.HasVisibleText(record.TranslatedText) || string.IsNullOrEmpty(record.SourceText) ||
+                    !currentSources.Contains(string.Join("|", record.PackageId, record.DefTypeName, record.DefName, record.FieldName, record.SourceText))) continue;
+                string hash = Glossary.SourceHash(record.SourceText, terms);
+                if (hash == TextHasher.Sha1(record.SourceText)) continue;
+                TranslationEntry entry = record.ToEntry();
+                entry.SourceHash = hash;
+                entry.TranslatedText = null;
+                if (!NativeTranslations.Contains(entry)) entries.Add(entry);
+            }
+            return entries;
         }
 
         public static void Pause()
@@ -268,7 +305,7 @@ namespace RuntimeTranslator
             return (record.Id ?? string.Empty) + "|" + (record.SourceHash ?? string.Empty) + "|" + (record.Provider ?? string.Empty);
         }
 
-        private static async Task RunWorker(List<TranslationEntry> scanned, ITranslationProvider provider, RuntimeTranslatorSettings taskSettings, CancellationToken token)
+        private static async Task RunWorker(List<TranslationEntry> scanned, ITranslationProvider provider, RuntimeTranslatorSettings taskSettings, CancellationToken token, bool applyGlossary = false)
         {
             int completed = 0;
             int failed = 0;
@@ -334,7 +371,7 @@ namespace RuntimeTranslator
                                 entry.TranslatedText = translated;
                                 lock (cacheLock)
                                 {
-                                    cache.Put(entry, providerName);
+                                    cache.Put(entry, providerName, applyGlossary);
                                 }
                                 if (taskSettings.ApplyRuntimeTranslations) QueueApply(entry);
                                 completed++;

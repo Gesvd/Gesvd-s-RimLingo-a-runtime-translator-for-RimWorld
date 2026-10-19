@@ -80,18 +80,58 @@ namespace RuntimeTranslator
 
         public static Dictionary<string, int> CountWords(IEnumerable<string> texts, CancellationToken token = default(CancellationToken))
         {
-            Dictionary<string, int> counts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            List<List<string>> runs = new List<List<string>>();
+            Dictionary<string, int> phrases = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
             foreach (string text in texts)
             {
                 token.ThrowIfCancellationRequested();
-                string plain = Regex.Replace(TextProtection.Protect(text).Text, @"__RT_TOKEN_\d+__", " ");
+                string plain = Regex.Replace(TextProtection.Protect(text).Text, @"__RT_TOKEN_\d+__", "|");
+                List<string> run = null;
+                int previousEnd = -1;
                 foreach (Match match in Regex.Matches(plain, @"(?<![\p{L}\p{N}_])[A-Za-z]+(?:'[A-Za-z]+)?(?![\p{L}\p{N}_])"))
                 {
                     string word = match.Value.ToLowerInvariant();
                     if (word.EndsWith("'s", StringComparison.Ordinal)) word = word.Substring(0, word.Length - 2);
-                    if (word.Length < 2 || StopWords.Contains(word)) continue;
-                    counts.TryGetValue(word, out int count);
-                    counts[word] = count + 1;
+                    if (word.Length < 2 || StopWords.Contains(word)) { run = null; previousEnd = -1; continue; }
+                    if (run == null || !Regex.IsMatch(plain.Substring(previousEnd, match.Index - previousEnd), @"^[ \t]+$"))
+                    {
+                        run = new List<string>(); runs.Add(run);
+                    }
+                    run.Add(word);
+                    previousEnd = match.Index + match.Length;
+                }
+            }
+            foreach (List<string> run in runs)
+            {
+                token.ThrowIfCancellationRequested();
+                Dictionary<string, int> nextStart = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+                for (int offset = 0; offset < run.Count; offset++)
+                for (int length = 2; length <= Math.Min(6, run.Count - offset); length++)
+                {
+                    string phrase = string.Join(" ", run.GetRange(offset, length));
+                    if (nextStart.TryGetValue(phrase, out int next) && offset < next) continue;
+                    nextStart[phrase] = offset + length;
+                    phrases.TryGetValue(phrase, out int count);
+                    phrases[phrase] = count + 1;
+                }
+            }
+            Dictionary<string, int> counts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            foreach (List<string> run in runs)
+            {
+                token.ThrowIfCancellationRequested();
+                for (int offset = 0; offset < run.Count;)
+                {
+                    int length = Math.Min(6, run.Count - offset);
+                    string candidate = null;
+                    for (; length >= 2; length--)
+                    {
+                        candidate = string.Join(" ", run.GetRange(offset, length));
+                        if (phrases[candidate] >= 2) break;
+                    }
+                    if (length < 2) { length = 1; candidate = run[offset]; }
+                    counts.TryGetValue(candidate, out int count);
+                    counts[candidate] = count + 1;
+                    offset += length;
                 }
             }
             return counts;
@@ -100,7 +140,7 @@ namespace RuntimeTranslator
         public static Dictionary<string, int> ScanFiles(IEnumerable<string> folders, CancellationToken token = default(CancellationToken))
         {
             HashSet<string> files = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            Dictionary<string, int> counts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            List<string> texts = new List<string>();
             foreach (string folder in folders.Distinct(StringComparer.OrdinalIgnoreCase))
             {
                 foreach (string relative in new[] { "Defs", Path.Combine("Languages", "English") })
@@ -116,13 +156,9 @@ namespace RuntimeTranslator
                             using (XmlReader reader = XmlReader.Create(file, new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null }))
                             {
                                 XDocument document = XDocument.Load(reader);
-                                foreach (KeyValuePair<string, int> word in CountWords(document.Descendants().Where(element => !element.HasElements &&
+                                texts.AddRange(document.Descendants().Where(element => !element.HasElements &&
                                     (relative != "Defs" || ModTextScanner.IsSupportedField(element.Name.LocalName)))
-                                    .Select(element => element.Value), token))
-                                {
-                                    counts.TryGetValue(word.Key, out int count);
-                                    counts[word.Key] = count + word.Value;
-                                }
+                                    .Select(element => element.Value));
                             }
                         }
                         catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException || ex is XmlException)
@@ -132,7 +168,7 @@ namespace RuntimeTranslator
                     }
                 }
             }
-            return counts;
+            return CountWords(texts, token);
         }
 
         public static void Merge(RuntimeTranslatorSettings settings, Dictionary<string, int> counts, string source, string target)

@@ -90,7 +90,7 @@ namespace RuntimeTranslator.Tests
             {
                 WaitingProvider mainProvider = new WaitingProvider();
                 Task main = (Task)typeof(TranslationManager).GetMethod("RunWorker", Hidden).Invoke(null,
-                    new object[] { new List<TranslationEntry> { new TranslationEntry { Id = "active", SourceText = "active" } }, mainProvider, settings, linked.Token });
+                    new object[] { new List<TranslationEntry> { new TranslationEntry { Id = "active", SourceText = "active" } }, mainProvider, settings, linked.Token, false });
                 Check(mainProvider.Entered.Wait(5000), "main translation is waiting for an HTTP-like request before shutdown");
                 RuntimeTranslatorSettings glossary = new RuntimeTranslatorSettings();
                 glossary.GlossaryTerms.Add(new GlossaryTerm { Source = "active term" });

@@ -28,7 +28,7 @@ namespace RuntimeTranslator
                 .OrderByDescending(term => term.Count).ThenBy(term => term.Source).ToList();
             int pages = Math.Max(1, (terms.Count + 29) / 30);
             glossaryPage = Math.Max(0, Math.Min(glossaryPage, pages - 1));
-            Listing_Standard listing = BeginScroll(inRect, ref glossaryScrollPosition, 455f + Math.Min(30, terms.Count) * 34f);
+            Listing_Standard listing = BeginScroll(inRect, ref glossaryScrollPosition, 740f + Math.Min(30, terms.Count) * 34f);
             listing.Label(UiText.Get("Glossary: ") + Settings.SourceLanguage + " -> " + Settings.TargetLanguage);
             listing.Label(UiText.Get("Scan English words in selected mods. Fill a translation to enforce it; blank means inactive. Changes affect the next translation task."));
             if (glossaryScanning) listing.Label(UiText.Get("Scanning selected mod files..."));
@@ -40,6 +40,13 @@ namespace RuntimeTranslator
             else if (!glossaryScanning && listing.ButtonText(UiText.Get("Translate missing glossary terms (current provider)"))) StartGlossaryTranslation();
             if (!glossaryScanning && glossaryTranslationCancellation == null && listing.ButtonText(UiText.Get("Import glossary from selected mods with bundled Chinese translations"))) StartBundledGlossaryImport();
             listing.Label(UiText.Get("Import matches English/Chinese XML keys and short labels. Existing translations are kept; conflicting terms are omitted."));
+            if (!glossaryScanning && glossaryTranslationCancellation == null && listing.ButtonText(UiText.Get("Apply glossary to cached translations")))
+            {
+                WriteSettings();
+                TranslationManager.Start(true);
+            }
+            listing.Label(UiText.Get("Retranslates matching cached text for this language pair with the current provider; may use API quota. Failed items keep their old translations. Pause or cancel on the Task tab."));
+            listing.Label(UiText.Get("Repeated phrases (2-6 words) count as a whole, longest first. Their component words are counted only when used separately."));
             listing.Label(glossaryTranslationStatus);
             string nextSearch = TextFieldLabeled(listing, UiText.Get("Search terms"), glossarySearch);
             if (nextSearch != glossarySearch) { glossarySearch = nextSearch; glossaryPage = 0; }

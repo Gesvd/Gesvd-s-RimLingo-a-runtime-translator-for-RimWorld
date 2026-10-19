@@ -116,4 +116,8 @@
   <RT_d5379c70ea4200f6397ed3a97c573b2ad6b2a54e>Ready (offline English to Chinese)</RT_d5379c70ea4200f6397ed3a97c573b2ad6b2a54e>
   <RT_577089002eaa06473557b3a8038406affd904c5b>Stopped / cancelled</RT_577089002eaa06473557b3a8038406affd904c5b>
   <RT_2ee76a2136ba0543594c6eb0eb4a9fc2ca9826f1>Slider: 1-50. Enter a larger number manually. Very large batches may cause game stuttering or exceed the translation service limits.</RT_2ee76a2136ba0543594c6eb0eb4a9fc2ca9826f1>
+  <RT_c391f7dc2c1d9ef95dd9a1f797509cc729fdfbfa>Apply glossary to cached translations</RT_c391f7dc2c1d9ef95dd9a1f797509cc729fdfbfa>
+  <RT_fc5b364fbbc7ec73cf0a38628e314bc0fabad105>No cached translations match the active glossary and language pair.</RT_fc5b364fbbc7ec73cf0a38628e314bc0fabad105>
+  <RT_1398c55e89c1d7145168897d4aaaf3e0143816b2>Retranslates matching cached text for this language pair with the current provider; may use API quota. Failed items keep their old translations. Pause or cancel on the Task tab.</RT_1398c55e89c1d7145168897d4aaaf3e0143816b2>
+  <RT_0771440db6dae3a51ee4e9d771bbf414842bef00>Repeated phrases (2-6 words) count as a whole, longest first. Their component words are counted only when used separately.</RT_0771440db6dae3a51ee4e9d771bbf414842bef00>
 </LanguageData>

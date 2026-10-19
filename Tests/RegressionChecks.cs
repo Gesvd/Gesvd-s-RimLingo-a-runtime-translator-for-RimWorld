@@ -101,7 +101,7 @@ namespace RuntimeTranslator.Tests
         private static void Worker(List<TranslationEntry> entries, RecordingProvider provider, RuntimeTranslatorSettings snapshot)
         {
             Task task = (Task)typeof(TranslationManager).GetMethod("RunWorker", Hidden)
-                .Invoke(null, new object[] { entries, provider, snapshot, CancellationToken.None });
+                .Invoke(null, new object[] { entries, provider, snapshot, CancellationToken.None, false });
             task.GetAwaiter().GetResult();
         }
 
@@ -281,6 +281,7 @@ namespace RuntimeTranslator.Tests
             passed += WorkflowChecks.Run(Path.Combine(folder, "workflow-checks"));
             passed += BundledTranslationChecks.Run(Path.Combine(folder, "bundled-translation-checks"));
             passed += NativeTranslationChecks.Run(Path.Combine(folder, "native-translation-checks"));
+            passed += GlossaryRefreshChecks.Run(Path.Combine(folder, "glossary-refresh-checks"));
             passed += SelfAndShutdownChecks.Run(Path.Combine(folder, "self-and-shutdown"));
             Console.WriteLine("Passed " + passed + " checks. Test data: " + folder);
         }

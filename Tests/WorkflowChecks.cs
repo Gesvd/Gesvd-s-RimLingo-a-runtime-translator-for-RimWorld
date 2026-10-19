@@ -41,7 +41,7 @@ namespace RuntimeTranslator.Tests
         private static void Worker(List<TranslationEntry> entries, ITranslationProvider provider, RuntimeTranslatorSettings snapshot)
         {
             Task worker = (Task)typeof(TranslationManager).GetMethod("RunWorker", Hidden).Invoke(null,
-                new object[] { entries, provider, snapshot, CancellationToken.None });
+                new object[] { entries, provider, snapshot, CancellationToken.None, false });
             worker.GetAwaiter().GetResult();
         }
         public static int Run(string folder)

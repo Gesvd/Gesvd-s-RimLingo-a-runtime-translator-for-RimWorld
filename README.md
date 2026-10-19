@@ -53,6 +53,10 @@ RimWorld 本体和官方 DLC 不会出现在可选模组中，也不会进入翻
 - **翻译缺少译法的词条**：点击 **Translate missing glossary terms (current provider)**，使用当前选择的翻译服务处理空白词条。已有译法会保留。
 - **手动维护**：搜索词条、修改译法，或使用 **Add / update term** 添加词和短语。清空译法表示停用该条规则，**Remove** 可以删除词条。
 
+- **应用术语库到已有译文**：按当前语言组合处理已加载模组中涉及已启用术语的已有缓存，不受模组勾选或词汇库搜索分页限制。使用缓存中的原文和当前术语库，通过当前翻译服务重新翻译，可能消耗 API 额度；成功后替换该原文的旧缓存版本，失败或取消时保留尚未成功条目的旧译文。可在任务页暂停、继续或取消。模组自带译文仍优先；已清空的译文、其他语言、不涉及术语的文本，以及原文已改变或模组未加载的缓存不处理。应用到游戏及导出文件遵循任务页对应的开关。手动修正过的匹配缓存也会参与，请先确认术语译法。
+
+扫描会优先统计至少出现两次的连续英文短语（2–6 个有效词），较长短语优先。例如 `parasitic egg` 出现两次，则短语计数为 2，其中的 `parasitic` 和 `egg` 不再各加 2；独立出现的单词另行计数。标点、换行、介词连词及格式占位符会隔断短语。跨文件累计频次，重新扫描更新计数，但保留玩家已有的词条与译法。
+
 自带术语导入只添加新词或填补空白，不覆盖默认词条或玩家已有译法；同一英文出现不同中文译法时不自动导入。简繁体不会混合。导入的短语最多六个英文单词、64 个字符，不从长句中猜测单个单词的对应关系，也不提取只有继承结果而无匹配源文件的标签、非 XML Strings 或缺少对应英文文件的独立汉化包。
 
 词汇修改影响后续新任务；已开始的正文任务保持启动时的语言、服务和词汇规则。**Batch size (next request)** 是实时设置，修改后从下一批请求生效，已经发送的请求不会被拆分。
@@ -129,7 +133,7 @@ Preview's **Replace next 50** processes each matching record once per operation,
 
 ## Translating This Mod
 
-The official Simplified Chinese UI is bundled in `Languages/ChineseSimplified/Keyed/RuntimeTranslator.xml` and follows the game language automatically. Its Chinese brand name is **Gesvd的边缘翻译**. Native translations take priority over old machine-translation caches; the mod skips its own translated UI when targeting Simplified Chinese. Other target languages can still translate its settings by selecting this mod in **Mods**. The English source table remains in `Languages/English/Keyed/RuntimeTranslator.xml`; both tables contain 116 matching keys. The package ID is `gesvd.rimlingo`; cache paths and diagnostic identifiers remain unchanged. Older self-selection and self-translation cache IDs are migrated automatically.
+The official Simplified Chinese UI is bundled in `Languages/ChineseSimplified/Keyed/RuntimeTranslator.xml` and follows the game language automatically. Its Chinese brand name is **Gesvd的边缘翻译**. Native translations take priority over old machine-translation caches; the mod skips its own translated UI when targeting Simplified Chinese. Other target languages can still translate its settings by selecting this mod in **Mods**. The English source table remains in `Languages/English/Keyed/RuntimeTranslator.xml`; both tables contain 120 matching keys. The package ID is `gesvd.rimlingo`; cache paths and diagnostic identifiers remain unchanged. Older self-selection and self-translation cache IDs are migrated automatically.
 
 ## Interrupting Work On Exit
 
@@ -151,6 +155,10 @@ English-to-Simplified-Chinese starts with `pawn` and `pawns` mapped to `小人`.
 Discovery reads common text fields in the active mod version's `Defs` XML and leaf text in `Languages/English` XML. It excludes English stop words, formatting tokens, IDs, and non-English language files. Malformed or unreadable XML files are skipped with a log warning. Counts are for the selected files, not an exhaustive linguistic analysis; singular/plural forms are separate editable terms.
 
 All three providers protect confirmed terms as placeholders and restore the exact preferred wording. Matching ignores case, uses whole-word boundaries, and prioritizes longer phrases. Format tags and variables remain protected. A provider that damages these placeholders fails the batch rather than storing inconsistent terms. A word with several meanings uses the same preferred wording throughout the language pair; clear or remove a term if that is unsuitable.
+
+**Apply glossary to cached translations** starts a normal pausable/cancellable task using the current provider and current language pair. It retranslates affected cached original text from loaded mods with the active glossary, including manually edited matching cache entries, and may use API quota. Successful results replace obsolete cache variants for that same original; failed or cancelled items keep their previous translations. It ignores glossary search/page and mod selection, skips cleared/unrelated/other-language/native-protected entries and unloaded or changed-source cache entries, and follows the current apply/export switches.
+
+Candidate scanning counts repeated contiguous English phrases of 2–6 non-stop words, longest first, without also counting their component-word occurrences. Independently used words still count. Frequencies are combined across XML files; punctuation, line breaks, stop words and protected formatting tokens separate phrases. Rescanning updates counts while preserving existing terms and preferred translations.
 
 Terms are saved in RimWorld mod settings, including on scan completion, adding a term, or each automatic glossary translation batch; inline edits are saved when the settings window closes. The original mod files remain unchanged. Previously generated files are refreshed by exporting again after the new translation task completes.
 

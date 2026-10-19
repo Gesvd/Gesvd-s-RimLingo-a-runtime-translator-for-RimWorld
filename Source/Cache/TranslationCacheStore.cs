@@ -131,8 +131,11 @@ namespace RuntimeTranslator
             return records.TryGetValue(Key(entry.Id, entry.SourceHash, provider), out record);
         }
 
-        public void Put(TranslationEntry entry, string provider)
+        public void Put(TranslationEntry entry, string provider, bool replaceExisting = false)
         {
+            if (replaceExisting)
+                foreach (string key in records.Where(pair => pair.Value.Id == entry.Id && pair.Value.SourceText == entry.SourceText).Select(pair => pair.Key).ToList())
+                    records.Remove(key);
             TranslationCacheRecord record = TranslationCacheRecord.FromEntry(entry, provider);
             records[Key(record.Id, record.SourceHash, provider)] = record;
         }

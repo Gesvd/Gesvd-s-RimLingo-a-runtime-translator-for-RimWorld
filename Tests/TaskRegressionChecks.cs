@@ -83,7 +83,7 @@ namespace RuntimeTranslator.Tests
             Task worker = Task.Run(async () =>
             {
                 Task inner = (Task)typeof(TranslationManager).GetMethod("RunWorker", Hidden).Invoke(null,
-                    new object[] { new List<TranslationEntry> { entry }, provider, settings, cancellation.Token });
+                    new object[] { new List<TranslationEntry> { entry }, provider, settings, cancellation.Token, false });
                 await inner.ConfigureAwait(false);
             });
             Field("worker", worker);
