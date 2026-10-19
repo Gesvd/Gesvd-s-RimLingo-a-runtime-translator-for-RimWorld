@@ -41,6 +41,7 @@ namespace RuntimeTranslator
             Settings = GetSettings<RuntimeTranslatorSettings>();
             TranslationManager.Initialize(Settings);
             UiText.Initialize(content);
+            BundledLibreTranslate.Initialize(content.RootDir, System.IO.Path.Combine(GenFilePaths.ConfigFolderPath, "RuntimeTranslator", "LocalEngine"));
             LongEventHandler.ExecuteWhenFinished(() =>
             {
                 GameObject updater = new GameObject("RuntimeTranslator");
@@ -231,6 +232,14 @@ namespace RuntimeTranslator
         private void DrawLibreTranslateProviderSettings(Listing_Standard listing)
         {
             listing.Label(UiText.Get("LibreTranslate"));
+            Settings.UseBundledLibreTranslate = listing.CheckboxLabeledReturn(UiText.Get("Use bundled offline engine (Windows, English to Chinese)"), Settings.UseBundledLibreTranslate);
+            if (Settings.UseBundledLibreTranslate)
+            {
+                listing.Label(UiText.Get("Starts on the first translation request. No API key required."));
+                listing.Label(BundledLibreTranslate.Status);
+                listing.Label(UiText.Get("License: AGPL-3.0. Source and notices: LocalEngine/sources.zip"));
+                return;
+            }
             Settings.LibreTranslateUrl = TextFieldLabeled(listing, UiText.Get("Web/API URL"), Settings.LibreTranslateUrl);
             Settings.LibreTranslateApiKey = PasswordFieldLabeled(listing, UiText.Get("API key"), Settings.LibreTranslateApiKey);
             listing.Label(UiText.Get("LibreTranslate does not use a model ID in this adapter."));

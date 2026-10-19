@@ -3,3 +3,16 @@ obj/
 Assemblies/
 .dotnet-home/
 *.user
+LocalEngine/runtime/
+LocalEngine/build-cache/
+LocalEngine/models/
+LocalEngine/data/
+LocalEngine/sources/
+LocalEngine/READY.json
+LocalEngine/installed-packages.json
+LocalEngine/dependency-lock.txt
+LocalEngine/__pycache__/
+
+LocalEngine/sources.zip
+LocalEngine/test-data/
+Releases/

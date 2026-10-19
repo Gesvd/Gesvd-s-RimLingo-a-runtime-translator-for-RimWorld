@@ -22,6 +22,7 @@ namespace RuntimeTranslator
         public string OpenAiRules = "Translate RimWorld mod text naturally. Preserve placeholders, XML-like tags, variables, numbers, and game terms.";
         public string LibreTranslateUrl = "http://localhost:5000";
         public string LibreTranslateApiKey = string.Empty;
+        public bool UseBundledLibreTranslate;
         public string LaraTranslateUrl = "http://127.0.0.1:8765";
         public string LaraTranslateModel = "text";
         public string LaraTranslateApiKey = string.Empty;
@@ -53,6 +54,7 @@ namespace RuntimeTranslator
             Scribe_Values.Look(ref OpenAiRules, "openAiRules", "Translate RimWorld mod text naturally. Preserve placeholders, XML-like tags, variables, numbers, and game terms.");
             Scribe_Values.Look(ref LibreTranslateUrl, "libreTranslateUrl", "http://localhost:5000");
             Scribe_Values.Look(ref LibreTranslateApiKey, "libreTranslateApiKey", string.Empty);
+            Scribe_Values.Look(ref UseBundledLibreTranslate, "useBundledLibreTranslate", false);
             Scribe_Values.Look(ref LaraTranslateUrl, "laraTranslateUrl", "http://127.0.0.1:8765");
             Scribe_Values.Look(ref LaraTranslateModel, "laraTranslateModel", "text");
             Scribe_Values.Look(ref LaraTranslateApiKey, "laraTranslateApiKey", string.Empty);

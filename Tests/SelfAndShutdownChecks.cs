@@ -23,6 +23,7 @@ namespace RuntimeTranslator.Tests
         }
         public static int Run(string folder)
         {
+            passed += BundledEngineChecks.Run(ProjectRoot, folder);
             Verse.GenFilePaths.ConfigFolderPath = folder;
             Verse.ModContentPack pack = new Verse.ModContentPack
             {

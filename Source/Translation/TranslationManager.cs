@@ -389,6 +389,7 @@ namespace RuntimeTranslator
         public static void Shutdown()
         {
             TranslationLifetime.Stop();
+            BundledLibreTranslate.Stop();
             pauseGate.Set();
             lock (pendingLock)
             {

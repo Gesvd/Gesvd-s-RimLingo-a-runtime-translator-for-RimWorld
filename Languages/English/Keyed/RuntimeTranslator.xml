@@ -85,4 +85,7 @@
   <RT_f7ac714e6d394265cad861815f08014d7e2c6819>Preferred translation</RT_f7ac714e6d394265cad861815f08014d7e2c6819>
   <RT_f8c824ee74030cb2884eddade11a5561fb4764e2>Status: </RT_f8c824ee74030cb2884eddade11a5561fb4764e2>
   <RT_ffae9f959adda7f3330e1cde5667de502db6dd8c>Lara Translate SDK Bridge</RT_ffae9f959adda7f3330e1cde5667de502db6dd8c>
+  <RT_f9293d8c355053a6025e96b037cca84d40669386>Use bundled offline engine (Windows, English to Chinese)</RT_f9293d8c355053a6025e96b037cca84d40669386>
+  <RT_6fce2342ac73749ce9dafdab0662dff4246a19f6>Starts on the first translation request. No API key required.</RT_6fce2342ac73749ce9dafdab0662dff4246a19f6>
+  <RT_83cf8be1cbef7ac0ddb2f6c768fd08d2ef453fc1>License: AGPL-3.0. Source and notices: LocalEngine/sources.zip</RT_83cf8be1cbef7ac0ddb2f6c768fd08d2ef453fc1>
 </LanguageData>

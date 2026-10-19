@@ -18,14 +18,18 @@ namespace RuntimeTranslator
 
         public string DisplayName
         {
-            get { return "LibreTranslate"; }
+            get { return settings.UseBundledLibreTranslate ? "LibreTranslate (bundled en-zh 1.9)" : "LibreTranslate"; }
         }
 
         public async Task<TranslationBatchResult> TranslateBatchAsync(TranslationBatchRequest request, CancellationToken cancellationToken)
         {
+            if (settings.UseBundledLibreTranslate && (NormalizeLanguage(request.SourceLanguage) != "en" || NormalizeLanguage(request.TargetLanguage) != "zh"))
+                throw new InvalidOperationException("Bundled LibreTranslate supports only English to ChineseSimplified.");
             TranslationBatchResult result = new TranslationBatchResult();
             List<GlossaryTerm> terms = Glossary.ForLanguages(settings, request.SourceLanguage, request.TargetLanguage);
-            using (HttpClient client = new HttpClient())
+            string baseUrl = settings.UseBundledLibreTranslate
+                ? await BundledLibreTranslate.GetEndpointAsync(cancellationToken).ConfigureAwait(false) : settings.LibreTranslateUrl;
+            using (HttpClient client = new HttpClient(new HttpClientHandler { UseProxy = !settings.UseBundledLibreTranslate }))
             {
                 foreach (TranslationEntry entry in request.Entries)
                 {
@@ -36,10 +40,10 @@ namespace RuntimeTranslator
                         source = NormalizeLanguage(request.SourceLanguage),
                         target = NormalizeLanguage(request.TargetLanguage),
                         format = "text",
-                        api_key = settings.LibreTranslateApiKey ?? string.Empty
+                        api_key = settings.UseBundledLibreTranslate ? string.Empty : settings.LibreTranslateApiKey ?? string.Empty
                     };
 
-                    using (HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, CombineUrl(settings.LibreTranslateUrl, "translate")))
+                    using (HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, CombineUrl(baseUrl, settings.UseBundledLibreTranslate ? "runtime-translator/translate" : "translate")))
                     {
                         message.Content = new StringContent(JsonHttp.Serialize(libreRequest), System.Text.Encoding.UTF8, "application/json");
                         using (HttpResponseMessage response = await client.SendAsync(message, cancellationToken).ConfigureAwait(false))
