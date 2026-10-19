@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <RT_0595bcf13b85a01b798cc25af744a2c28cf64737>No missing glossary translations for this language pair. Scan mods first or add terms.</RT_0595bcf13b85a01b798cc25af744a2c28cf64737>
+  <RT_071ccfac7e74ba7983ec163f0f6a3135dded69df>Cancel glossary translation</RT_071ccfac7e74ba7983ec163f0f6a3135dded69df>
+  <RT_108d9ea56d721f0a1e0657f67fffe1da3ae6bdb0>Page </RT_108d9ea56d721f0a1e0657f67fffe1da3ae6bdb0>
+  <RT_16be7a20f07c5676c6991a2f4ef82046dd074710>Apply translations to loaded Defs</RT_16be7a20f07c5676c6991a2f4ef82046dd074710>
+  <RT_1979e2b640d5ca0097fe6260dece995da44e651c>Scan English words in selected mods. Fill a translation to enforce it; blank means inactive. Changes affect the next translation task.</RT_1979e2b640d5ca0097fe6260dece995da44e651c>
+  <RT_1da7d76568e881b41a746f2b249d88400a2e48b8>Automatic word discovery currently supports English / Auto sources. Other languages can use manual terms.</RT_1da7d76568e881b41a746f2b249d88400a2e48b8>
+  <RT_1e7cbe7a3f7b82308b2ec73dbc6273365bad0739>Scan selected mods (English candidates)</RT_1e7cbe7a3f7b82308b2ec73dbc6273365bad0739>
+  <RT_1fbc7a8ad45363c9068f6eeb64f7f3c81b26bf0e>Web/API URL</RT_1fbc7a8ad45363c9068f6eeb64f7f3c81b26bf0e>
+  <RT_2492c0dc074e6fa326871ad4fe4c600339d4b0a0>Runtime Translator</RT_2492c0dc074e6fa326871ad4fe4c600339d4b0a0>
+  <RT_2bb698213ffb35bf6272c466de0afe86a27e4231>Selected mods: </RT_2bb698213ffb35bf6272c466de0afe86a27e4231>
+  <RT_2cc570588b4cdddc996106ffac179bfded103094>Replace next 50</RT_2cc570588b4cdddc996106ffac179bfded103094>
+  <RT_3e17d5157261d6fdcf84d924e752f5feaebdc59c>Current: </RT_3e17d5157261d6fdcf84d924e752f5feaebdc59c>
+  <RT_3f88b31a5915a584052846a17979ea6bd85ec3c8>Mods (</RT_3f88b31a5915a584052846a17979ea6bd85ec3c8>
+  <RT_40a324e706fb53ab9435f323eb26408ff57a4a69>  Failed: </RT_40a324e706fb53ab9435f323eb26408ff57a4a69>
+  <RT_419e7b4f0b656b53720558bb7822cb223423b394>Export RimWorld language files</RT_419e7b4f0b656b53720558bb7822cb223423b394>
+  <RT_503c271ccc88c3685ba9585e1286b7f6675986ef> cached translations.</RT_503c271ccc88c3685ba9585e1286b7f6675986ef>
+  <RT_50f94286ba30706a19070d3ec0a0c8d34d6cf6eb>Previous</RT_50f94286ba30706a19070d3ec0a0c8d34d6cf6eb>
+  <RT_564f8c6e76fbd512be2e38dabdfdd61550d0c3cc>With</RT_564f8c6e76fbd512be2e38dabdfdd61550d0c3cc>
+  <RT_59ec6a784c22c9c955d3a03055fc77682d4a2c6c>Glossary: </RT_59ec6a784c22c9c955d3a03055fc77682d4a2c6c>
+  <RT_5b16e06cca5541f4bfb706a7e6be748f8f0bbb96>Batch size (next request)</RT_5b16e06cca5541f4bfb706a7e6be748f8f0bbb96>
+  <RT_5d43fba77258666a3e6bfba6fd41335d65ec9a78>   Source (occurrences) / Translation</RT_5d43fba77258666a3e6bfba6fd41335d65ec9a78>
+  <RT_5d850756eac22e2d016f6f8b7dace18b248743c7>Access Key ID</RT_5d850756eac22e2d016f6f8b7dace18b248743c7>
+  <RT_608aad9a52fceb5c236c6b34ff8c628f7bd06730>Skip completed translations (reuse valid cache)</RT_608aad9a52fceb5c236c6b34ff8c628f7bd06730>
+  <RT_6362e488e625a4bd3fab3af2a168b863217c3377>Clear selected</RT_6362e488e625a4bd3fab3af2a168b863217c3377>
+  <RT_68c2cc7f0ceaa3e499ecb4db331feb4debbbcc23>Model</RT_68c2cc7f0ceaa3e499ecb4db331feb4debbbcc23>
+  <RT_6da13addb000b67d42a6d66391713819e634149f>Source</RT_6da13addb000b67d42a6d66391713819e634149f>
+  <RT_6e99adc9babe6745631ac7935bdc95d2f92a4928>Glossary translations saved: </RT_6e99adc9babe6745631ac7935bdc95d2f92a4928>
+  <RT_7427cf697be16a4ec1d916910128a59d920125e7>Glossary</RT_7427cf697be16a4ec1d916910128a59d920125e7>
+  <RT_743a706322b37b659ffa58e9865beb61fb1af4ea>Runtime Translator replaced </RT_743a706322b37b659ffa58e9865beb61fb1af4ea>
+  <RT_746a0c55a5dab68692a1055ba71fe53f9ccc4c4d>. Saved: </RT_746a0c55a5dab68692a1055ba71fe53f9ccc4c4d>
+  <RT_758f70262a90b8e2f40e6890984513a4f4137e93>Loaded mods</RT_758f70262a90b8e2f40e6890984513a4f4137e93>
+  <RT_77dfd2135f4db726c47299bb55be26f7f4525a46>Cancel</RT_77dfd2135f4db726c47299bb55be26f7f4525a46>
+  <RT_781961bc81c25697841ecce5d4d9dad9f6b261c6>Pause</RT_781961bc81c25697841ecce5d4d9dad9f6b261c6>
+  <RT_7857baef45ca6d9691ac6d331f2de5fca2dadde7>Search terms</RT_7857baef45ca6d9691ac6d331f2de5fca2dadde7>
+  <RT_7bb0ddf9221c03b806b03c209e8366000124aa15>Task</RT_7bb0ddf9221c03b806b03c209e8366000124aa15>
+  <RT_7ceee3f3615a2bbe4ce0ac5a269a311e4821daf4>Provider</RT_7ceee3f3615a2bbe4ce0ac5a269a311e4821daf4>
+  <RT_7de64309b452dca7b9383129a2010128ac14eb6e> cached translations. Replace remaining in visible results: </RT_7de64309b452dca7b9383129a2010128ac14eb6e>
+  <RT_8b1fde9b75678420b8b48440950477a529fc6644>Glossary scan failed: </RT_8b1fde9b75678420b8b48440950477a529fc6644>
+  <RT_92b6eac5ff45ebb3bcd9880f8b1543e60ca48f29>Progress: </RT_92b6eac5ff45ebb3bcd9880f8b1543e60ca48f29>
+  <RT_952f375412e89ff213a8aca383d18e5691354347>Start</RT_952f375412e89ff213a8aca383d18e5691354347>
+  <RT_95b7f86143676f3c30dc4ed295b0291a21d8351b>Add / update term</RT_95b7f86143676f3c30dc4ed295b0291a21d8351b>
+  <RT_9675f72a2e640bbc66abf126f5cf974bfd023477>; Failed: </RT_9675f72a2e640bbc66abf126f5cf974bfd023477>
+  <RT_9c47240e80b4f715cfd4ce8731aa728b7f1f3c89>  Skipped: </RT_9c47240e80b4f715cfd4ce8731aa728b7f1f3c89>
+  <RT_a446d0bd1710ad06d047ee1fc7d11810156be110>Def</RT_a446d0bd1710ad06d047ee1fc7d11810156be110>
+  <RT_a7cf7b25a703b308887c7f1d100c4326ef20ac46>Replace</RT_a7cf7b25a703b308887c7f1d100c4326ef20ac46>
+  <RT_ac26a7a94ea2e66490f932b6415a09ef6f2a913c>Translation</RT_ac26a7a94ea2e66490f932b6415a09ef6f2a913c>
+  <RT_ad34c587dd970991e2cd7b1294ca11920f4b1a72>Scanning selected mod files...</RT_ad34c587dd970991e2cd7b1294ca11920f4b1a72>
+  <RT_ae3c35bce94a300d732aa749b68f0bb29f20e6fb>Selected: </RT_ae3c35bce94a300d732aa749b68f0bb29f20e6fb>
+  <RT_b10d74b5bb37c5ca2fda6aa4bac22f8a6a9018a0>OpenAI-compatible</RT_b10d74b5bb37c5ca2fda6aa4bac22f8a6a9018a0>
+  <RT_b3bd0b5a70497bec4a02b7eb1cb0d4f37eb71a2a>Resume</RT_b3bd0b5a70497bec4a02b7eb1cb0d4f37eb71a2a>
+  <RT_b4172363144c5f530b34cff390bcbf6067327e79>API URL</RT_b4172363144c5f530b34cff390bcbf6067327e79>
+  <RT_b4d76b218e81567a60e85011792a32da253c50ce>LibreTranslate</RT_b4d76b218e81567a60e85011792a32da253c50ce>
+  <RT_b8cc6e1fabc7a0717a642d33ea789af940da27c8>Showing: </RT_b8cc6e1fabc7a0717a642d33ea789af940da27c8>
+  <RT_bae7d5be70820ed56467bd9a63744e23b47bd711>Status</RT_bae7d5be70820ed56467bd9a63744e23b47bd711>
+  <RT_bb11a8e3f8712e36e7cd9d1c615a4e3dbb03336a>Rules</RT_bb11a8e3f8712e36e7cd9d1c615a4e3dbb03336a>
+  <RT_bc981983e7f547dc62e19a1e383acfe00782a6d5>Next</RT_bc981983e7f547dc62e19a1e383acfe00782a6d5>
+  <RT_bce06414177f72ab70e6387b6af9f8ceef0d6049>Search</RT_bce06414177f72ab70e6387b6af9f8ceef0d6049>
+  <RT_bf74054050917b8bdb99b528825335ac065a8f6e>Enter a plain word or phrase without format tags or placeholders.</RT_bf74054050917b8bdb99b528825335ac065a8f6e>
+  <RT_c1b262912080475aed3d4e64cb37dda9a986141d>Translating glossary: 0 / </RT_c1b262912080475aed3d4e64cb37dda9a986141d>
+  <RT_c1e0a0040c24c42ea3e00d98269de2eec20a867b>Translate missing glossary terms (current provider)</RT_c1e0a0040c24c42ea3e00d98269de2eec20a867b>
+  <RT_c6962a5d5a8b272ab592852bf7fab7ba0412de11>LibreTranslate does not use a model ID in this adapter.</RT_c6962a5d5a8b272ab592852bf7fab7ba0412de11>
+  <RT_c951fe1153f7fc68326bcdd774a77c8ccddf8e7f>Source language</RT_c951fe1153f7fc68326bcdd774a77c8ccddf8e7f>
+  <RT_ca32d0898dc9beed52f6a2175eaab94c87503f18>   Terms: </RT_ca32d0898dc9beed52f6a2175eaab94c87503f18>
+  <RT_cdae064ba6ec47d6bc503b5f4ddd1ecfb0e22459>Select at least one loaded mod with readable files on the Mods tab.</RT_cdae064ba6ec47d6bc503b5f4ddd1ecfb0e22459>
+  <RT_cef6be3f25fe6fe059ab440ff95db1a81d876f6b>Provider: </RT_cef6be3f25fe6fe059ab440ff95db1a81d876f6b>
+  <RT_cf678cab87dc1f7d1b95b964f15375e088461679>API key</RT_cf678cab87dc1f7d1b95b964f15375e088461679>
+  <RT_d1d02ccc2b04c02cc13499b844997324ac61c5cb>Last error: </RT_d1d02ccc2b04c02cc13499b844997324ac61c5cb>
+  <RT_d605afc60b395984cb64f55b33fbd1e5a4745865>Lara&apos;s official SDK handles authentication and encryption. This RimWorld mod calls a local SDK bridge because the official .NET SDK targets modern .NET, while RimWorld mods target .NET Framework.</RT_d605afc60b395984cb64f55b33fbd1e5a4745865>
+  <RT_db07be184479f34078cd4fc76d248dc0975720e9>Languages</RT_db07be184479f34078cd4fc76d248dc0975720e9>
+  <RT_de15f753728a08035f3b255ee52f6eb542d0d443>Content type</RT_de15f753728a08035f3b255ee52f6eb542d0d443>
+  <RT_de94ee818f9da8293ca58878b85ecf370e433c68>New word / phrase</RT_de94ee818f9da8293ca58878b85ecf370e433c68>
+  <RT_e29e6baff2500215ae45d50fbeaff867f31d0c85>Glossary scan finished. Words occurring at least twice were added; existing translations were kept. Unreadable files, if any, are listed in the log.</RT_e29e6baff2500215ae45d50fbeaff867f31d0c85>
+  <RT_e3ffc383cb2baefc21d1a4984cb7445311f54236>Search text or mod</RT_e3ffc383cb2baefc21d1a4984cb7445311f54236>
+  <RT_e91f3ea1362599b319ce93202a5411470e59f584>Access Key Secret</RT_e91f3ea1362599b319ce93202a5411470e59f584>
+  <RT_e963907dac5cd5c017869b4c96c18021c9bd058b>Remove</RT_e963907dac5cd5c017869b4c96c18021c9bd058b>
+  <RT_ed58f29743f8e14b9c8e13d41e070a1cc1d1c9f5>Instructions</RT_ed58f29743f8e14b9c8e13d41e070a1cc1d1c9f5>
+  <RT_ef2ccf392d63981a879c25f8636eea878063e7e4>Export cached translations</RT_ef2ccf392d63981a879c25f8636eea878063e7e4>
+  <RT_f03dcbd6dbc4c599ff151c0d5f6b8440624e135c>Bridge URL</RT_f03dcbd6dbc4c599ff151c0d5f6b8440624e135c>
+  <RT_f137c97e3de044babb50524619905eefd5aa79dd>Target language</RT_f137c97e3de044babb50524619905eefd5aa79dd>
+  <RT_f1fbb2b43dca281d0138f4fcc92543ad143ef0b1>Preview</RT_f1fbb2b43dca281d0138f4fcc92543ad143ef0b1>
+  <RT_f3e4fadb9e370a1e2c0c622c01fc8c77daf93a2c>Export</RT_f3e4fadb9e370a1e2c0c622c01fc8c77daf93a2c>
+  <RT_f62d9def87f3ec8edf7e7b79def0a754d2a4a49f>Select visible</RT_f62d9def87f3ec8edf7e7b79def0a754d2a4a49f>
+  <RT_f7ac714e6d394265cad861815f08014d7e2c6819>Preferred translation</RT_f7ac714e6d394265cad861815f08014d7e2c6819>
+  <RT_f8c824ee74030cb2884eddade11a5561fb4764e2>Status: </RT_f8c824ee74030cb2884eddade11a5561fb4764e2>
+  <RT_ffae9f959adda7f3330e1cde5667de502db6dd8c>Lara Translate SDK Bridge</RT_ffae9f959adda7f3330e1cde5667de502db6dd8c>
+</LanguageData>

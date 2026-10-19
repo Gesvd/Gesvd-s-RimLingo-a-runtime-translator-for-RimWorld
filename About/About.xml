@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ModMetaData>
+  <name>Runtime Translator</name>
+  <author>Gesvd &amp; Codex</author>
+  <packageId>codex.runtime.translator</packageId>
+  <supportedVersions>
+    <li>1.5</li>
+    <li>1.6</li>
+  </supportedVersions>
+  <description>
+    Translate loaded RimWorld mods during runtime from an in-game settings panel.
+
+    The mod does not connect to any translation service during game startup. Players choose which loaded mods to translate, select a provider and target language, then start or pause translation manually.
+  </description>
+</ModMetaData>
