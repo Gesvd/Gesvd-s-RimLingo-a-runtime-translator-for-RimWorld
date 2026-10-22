@@ -120,4 +120,24 @@
   <RT_fc5b364fbbc7ec73cf0a38628e314bc0fabad105>No cached translations match the active glossary and language pair.</RT_fc5b364fbbc7ec73cf0a38628e314bc0fabad105>
   <RT_1398c55e89c1d7145168897d4aaaf3e0143816b2>Retranslates matching cached text for this language pair with the current provider; may use API quota. Failed items keep their old translations. Pause or cancel on the Task tab.</RT_1398c55e89c1d7145168897d4aaaf3e0143816b2>
   <RT_0771440db6dae3a51ee4e9d771bbf414842bef00>Repeated phrases (2-6 words) count as a whole, longest first. Their component words are counted only when used separately.</RT_0771440db6dae3a51ee4e9d771bbf414842bef00>
+  <RT_c614ba7c453cdcd4d21b20e8286c6266c891e0c6>Auto</RT_c614ba7c453cdcd4d21b20e8286c6266c891e0c6>
+  <RT_649df08a448ee3fa90f3746baaf6b0907df42c91>English</RT_649df08a448ee3fa90f3746baaf6b0907df42c91>
+  <RT_ef4c08945840bb7213211938415012442cbb7890>ChineseSimplified</RT_ef4c08945840bb7213211938415012442cbb7890>
+  <RT_0ea2ff928605e67788fea8384f675d108a1597b9>ChineseTraditional</RT_0ea2ff928605e67788fea8384f675d108a1597b9>
+  <RT_9239c22d1d1c990ca8c206cb408b345a3ec8114c>Japanese</RT_9239c22d1d1c990ca8c206cb408b345a3ec8114c>
+  <RT_dec66c5bf0f7fe4cc038ac871def8eb1ac31c146>Korean</RT_dec66c5bf0f7fe4cc038ac871def8eb1ac31c146>
+  <RT_74ad93cbebf587ac46ab0ef1e3f24139ddd3f535>Russian</RT_74ad93cbebf587ac46ab0ef1e3f24139ddd3f535>
+  <RT_da91388c72d3e31da19dcd85c97374197748485d>German</RT_da91388c72d3e31da19dcd85c97374197748485d>
+  <RT_44389f6a466eaabf5c1db729e369511134e2b03b>French</RT_44389f6a466eaabf5c1db729e369511134e2b03b>
+  <RT_8df7f1b361b2af42d36011e00d22c0f9891ec0b0>Spanish</RT_8df7f1b361b2af42d36011e00d22c0f9891ec0b0>
+  <RT_23882c575954a0789bf02aba9e6dd01f539bc738>Portuguese</RT_23882c575954a0789bf02aba9e6dd01f539bc738>
+  <RT_2b8939917b6ad8fd054ca501656e9b86e3950980>DeepSeek</RT_2b8939917b6ad8fd054ca501656e9b86e3950980>
+  <RT_f60dab43e963e0bf6caa93b22854e1b6f266df2a>Claude</RT_f60dab43e963e0bf6caa93b22854e1b6f266df2a>
+  <RT_6f05a6c14d6a68212dc2289fa47bca0bca513385>Claude (Anthropic Messages API)</RT_6f05a6c14d6a68212dc2289fa47bca0bca513385>
+  <RT_f0a0e287991417f95f7673a3b755fe08d054eda4>Use bundled offline engine (Windows, installed language packs)</RT_f0a0e287991417f95f7673a3b755fe08d054eda4>
+  <RT_5eea0ed68aca204ab158e5013ff1909832833860>Install the required LanguagePacks, restart the game, then choose an available offline language pair. Auto requires an online provider.</RT_5eea0ed68aca204ab158e5013ff1909832833860>
+  <RT_273ff65b8fefcf3e002e5c667472ee9eb50baa32>Choose source and target languages from the dropdown menus.</RT_273ff65b8fefcf3e002e5c667472ee9eb50baa32>
+  <RT_d333a1a92f6cadd5fbbf49fe5e4be933a36893a9>Ready (offline language packs)</RT_d333a1a92f6cadd5fbbf49fe5e4be933a36893a9>
+  <RT_442afa4acf94d14ca61b1a2503855f9953bbfb62>Claude output is limited to 8192 tokens per request; reduce the batch size if output is truncated.</RT_442afa4acf94d14ca61b1a2503855f9953bbfb62>
+  <RT_9fbdff74a2d0ce556fe63db53ff65d5f722858df>Enable the required language expansion mods alongside RimLingo, restart the game, then choose an available offline language pair. Auto requires an online provider.</RT_9fbdff74a2d0ce556fe63db53ff65d5f722858df>
 </LanguageData>

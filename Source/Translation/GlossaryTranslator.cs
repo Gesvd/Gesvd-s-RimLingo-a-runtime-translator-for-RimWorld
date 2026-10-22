@@ -23,6 +23,8 @@ namespace RuntimeTranslator
             const string rules = " Translate standalone glossary terms for the RimWorld game. Use in-game meanings rather than chess meanings. Return one concise preferred term per item, with no explanations or alternatives.";
             providerSettings.OpenAiRules += rules;
             providerSettings.LaraTranslateRules += rules;
+            providerSettings.DeepSeekRules += rules;
+            providerSettings.ClaudeRules += rules;
             return providerSettings;
         }
 

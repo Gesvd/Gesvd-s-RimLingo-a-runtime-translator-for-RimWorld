@@ -120,4 +120,24 @@
   <RT_fc5b364fbbc7ec73cf0a38628e314bc0fabad105>当前语言组合中，没有可应用已启用术语的缓存译文。</RT_fc5b364fbbc7ec73cf0a38628e314bc0fabad105>
   <RT_1398c55e89c1d7145168897d4aaaf3e0143816b2>使用当前服务重新翻译本语言组合中涉及已启用术语的缓存文本，可能消耗 API 额度；失败条目保留旧译文。可在任务页暂停或取消。</RT_1398c55e89c1d7145168897d4aaaf3e0143816b2>
   <RT_0771440db6dae3a51ee4e9d771bbf414842bef00>重复出现的连续短语（2–6 个词）优先整体计数，较长短语优先；短语中的单词不重复计数，单独出现时才计数。</RT_0771440db6dae3a51ee4e9d771bbf414842bef00>
+  <RT_c614ba7c453cdcd4d21b20e8286c6266c891e0c6>自动识别</RT_c614ba7c453cdcd4d21b20e8286c6266c891e0c6>
+  <RT_649df08a448ee3fa90f3746baaf6b0907df42c91>英语</RT_649df08a448ee3fa90f3746baaf6b0907df42c91>
+  <RT_ef4c08945840bb7213211938415012442cbb7890>简体中文</RT_ef4c08945840bb7213211938415012442cbb7890>
+  <RT_0ea2ff928605e67788fea8384f675d108a1597b9>繁体中文</RT_0ea2ff928605e67788fea8384f675d108a1597b9>
+  <RT_9239c22d1d1c990ca8c206cb408b345a3ec8114c>日语</RT_9239c22d1d1c990ca8c206cb408b345a3ec8114c>
+  <RT_dec66c5bf0f7fe4cc038ac871def8eb1ac31c146>韩语</RT_dec66c5bf0f7fe4cc038ac871def8eb1ac31c146>
+  <RT_74ad93cbebf587ac46ab0ef1e3f24139ddd3f535>俄语</RT_74ad93cbebf587ac46ab0ef1e3f24139ddd3f535>
+  <RT_da91388c72d3e31da19dcd85c97374197748485d>德语</RT_da91388c72d3e31da19dcd85c97374197748485d>
+  <RT_44389f6a466eaabf5c1db729e369511134e2b03b>法语</RT_44389f6a466eaabf5c1db729e369511134e2b03b>
+  <RT_8df7f1b361b2af42d36011e00d22c0f9891ec0b0>西班牙语</RT_8df7f1b361b2af42d36011e00d22c0f9891ec0b0>
+  <RT_23882c575954a0789bf02aba9e6dd01f539bc738>葡萄牙语</RT_23882c575954a0789bf02aba9e6dd01f539bc738>
+  <RT_2b8939917b6ad8fd054ca501656e9b86e3950980>DeepSeek</RT_2b8939917b6ad8fd054ca501656e9b86e3950980>
+  <RT_f60dab43e963e0bf6caa93b22854e1b6f266df2a>Claude</RT_f60dab43e963e0bf6caa93b22854e1b6f266df2a>
+  <RT_6f05a6c14d6a68212dc2289fa47bca0bca513385>Claude（Anthropic 原生 Messages API）</RT_6f05a6c14d6a68212dc2289fa47bca0bca513385>
+  <RT_f0a0e287991417f95f7673a3b755fe08d054eda4>使用内置离线引擎（Windows，已安装的语言包）</RT_f0a0e287991417f95f7673a3b755fe08d054eda4>
+  <RT_5eea0ed68aca204ab158e5013ff1909832833860>请安装所需 LanguagePacks 扩展包并重启游戏，再选择可用的离线语言组合。自动识别需使用在线服务。</RT_5eea0ed68aca204ab158e5013ff1909832833860>
+  <RT_273ff65b8fefcf3e002e5c667472ee9eb50baa32>请从下拉菜单选择有效的源语言和目标语言。</RT_273ff65b8fefcf3e002e5c667472ee9eb50baa32>
+  <RT_d333a1a92f6cadd5fbbf49fe5e4be933a36893a9>就绪（离线语言包）</RT_d333a1a92f6cadd5fbbf49fe5e4be933a36893a9>
+  <RT_442afa4acf94d14ca61b1a2503855f9953bbfb62>Claude 每次请求最多输出 8192 个 token；如果输出被截断，请降低单次翻译数。</RT_442afa4acf94d14ca61b1a2503855f9953bbfb62>
+  <RT_9fbdff74a2d0ce556fe63db53ff65d5f722858df>请在模组列表同时启用 RimLingo 和所需语言扩展，重启后选择可用的离线语言组合。自动识别需使用在线服务。</RT_9fbdff74a2d0ce556fe63db53ff65d5f722858df>
 </LanguageData>

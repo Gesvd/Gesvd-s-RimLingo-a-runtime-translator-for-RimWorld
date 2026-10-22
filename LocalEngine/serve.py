@@ -18,6 +18,7 @@ def main():
     parser.add_argument('--parent-pid', type=int, required=True)
     parser.add_argument('--identity', required=True)
     parser.add_argument('--data', type=Path, required=True)
+    parser.add_argument('--pack', action='append', type=Path, default=[])
     args = parser.parse_args()
     args.data.mkdir(parents=True, exist_ok=True)
     log = open(args.data / 'engine.log', 'a', encoding='utf-8', buffering=1)
@@ -53,7 +54,9 @@ def main():
         return connect(sock, address)
     socket.socket.connect = local_connect
 
-    from argostranslate import package, translate
+    from argostranslate import package, translate, settings
+    settings.package_dirs = list(dict.fromkeys([ROOT / 'models' / 'packages'] +
+        [folder / 'models' / 'packages' for folder in args.pack if (folder / 'models' / 'packages').is_dir()]))
     class SentenceSplitter:
         def __init__(self, package):
             pass
@@ -67,20 +70,22 @@ def main():
     import libretranslate.init
     def offline_boot(*unused):
         installed = package.get_installed_packages()
-        if not any(p.from_code == 'en' and p.to_code == 'zh' for p in installed):
-            raise RuntimeError('Bundled English-Chinese model is missing')
+        if not installed:
+            raise RuntimeError('No offline models installed. Enable the required RimLingo language expansion mods and restart RimWorld.')
     # Upstream boot downloads models when fewer than two are installed.
     libretranslate.init.boot = offline_boot
     from libretranslate.main import get_parser
     from libretranslate.app import create_app
     from flask import request, jsonify, send_file
     from waitress import serve
-    config = get_parser().parse_args(['--load-only', 'en,zh', '--disable-web-ui',
+    installed = package.get_installed_packages()
+    codes = sorted({code for p in installed for code in (p.from_code, p.to_code)})
+    config = get_parser().parse_args(['--load-only', ','.join(codes), '--disable-web-ui',
                                      '--disable-files-translation', '--req-limit', '-1'])
     app = create_app(config)
     app.config['MAX_CONTENT_LENGTH'] = 1024 * 1024
-    model = translate.get_translation_from_codes('en', 'zh')
-    model.translate('Hello world.')  # Fail before health reports ready.
+    warmup = next((p for p in installed if p.from_code == 'en' and p.to_code == 'zh'), installed[0])
+    translate.get_translation_from_codes(warmup.from_code, warmup.to_code).translate('Hello world.')  # Fail before health reports ready.
     token = re.compile(r'(__RT_TOKEN_\d+__)')
     model_lock = threading.Lock()
 
@@ -92,13 +97,24 @@ def main():
     def source():
         return send_file(ROOT / 'sources.zip', as_attachment=True)
 
+    @app.get('/runtime-translator/languages')
+    def languages():
+        return jsonify(languages=codes, pairs=[{'source': p.from_code, 'target': p.to_code} for p in installed])
+
     @app.post('/runtime-translator/translate')
     def protected_translate():
         data = request.get_json(silent=True)
         if not isinstance(data, dict) or not isinstance(data.get('q'), str):
             return jsonify(error='Expected a JSON object with string q'), 400
-        if data.get('source') != 'en' or data.get('target') != 'zh':
-            return jsonify(error='Bundled engine supports only en -> zh'), 400
+        source, target = data.get('source'), data.get('target')
+        if source not in codes or target not in codes or source == target:
+            return jsonify(error='Unavailable offline language pair. Enable the required RimLingo language expansion mods and restart RimWorld.'), 400
+        try:
+            model = translate.get_translation_from_codes(source, target)
+        except Exception:
+            return jsonify(error='No installed translation route for this language pair.'), 400
+        if model is None:
+            return jsonify(error='No installed translation route for this language pair.'), 400
         parts = token.split(data['q'])
         with model_lock:
             # Machine translation changes placeholder spelling; preserve tokens verbatim.

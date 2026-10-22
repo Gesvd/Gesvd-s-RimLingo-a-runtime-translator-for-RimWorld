@@ -1,4 +1,4 @@
-# Gesvd’s RimLingo: a runtime translator for RimWorld
+# Gesvd’s RimLingo: a runtime translator for RimWorld — v1.3.0
 
 ![Gesvd’s RimLingo cover](About/Preview.png)
 
@@ -8,17 +8,33 @@ Authors: Gesvd & Codex.
 
 ## 中文使用说明
 
+当前版本：**v1.3.0**。更新内容见 [CHANGELOG.md](CHANGELOG.md)。
+
 **Gesvd的边缘翻译**（英文名 Gesvd’s RimLingo）是一个在 RimWorld 游戏内运行的模组翻译器。玩家可以选择已加载的模组，通过内置离线引擎或自己配置的翻译 API 补充翻译，并用词汇库统一术语、手动修改结果。它不会在游戏启动时自动联网或开始翻译任务。
 
 模组包 ID 为 `gesvd.rimlingo`。更新后会自动迁移旧版的自身选择记录和自身翻译缓存；API 设置、词汇库及其他模组的翻译缓存继续保留。请在原模组文件夹中更新，以继续使用原设置文件。旧存档或模组列表可能提示包 ID 变化，在模组管理中重新启用本模组即可；依赖本模组的第三方配置也应更新引用。
 
+### 语言扩展包
+
+扩展包位于本项目根目录的 **`LanguagePacks/`**，按 `ChineseSimplified`、`English`、`Japanese`、`Korean`、`Russian`、`German`、`French`、`Spanish`、`Portuguese` 分文件夹。每个模型扩展附本语言的 `README.md`、中文 `README.zh-CN.md`、模型清单和许可。`English` 是中转与基础功能说明，无需独立英语模型。
+
+语言包现在是**独立扩展模组**。玩家在 Steam 创意工坊订阅后，在游戏模组列表同时启用 **RimLingo 基础模组**和所需语言扩展即可。手动安装时，像普通模组一样把 ZIP 解压到游戏的 **`Mods` 目录**，形成 `Mods/RimLingo-Language-Japanese/About/About.xml` 这样的结构，然后在模组列表启用。基础模组排在扩展之前；依赖和顺序已在扩展的 `About.xml` 中声明。无需向基础模组复制模型文件，也无需配置文件路径。语言包需配合本版 v1.3.0 基础模组使用。
+
+语言下拉框在离线模式只显示已启用扩展所提供且有翻译路径的选项。日语→简体中文需要日语包和基础包；中文→日语还需要中文反向包。基础包无需重新下载每一种语言模型，也不会在启动或翻译时自动联网安装。启用或禁用语言扩展后按游戏提示重启。已禁用扩展不会加载。繁体中文和源语言“自动识别”可用于相应在线服务；本批离线包不包含繁体模型，也不包含自动语种识别器。中转翻译会增加处理时间，译法可能不如直接翻译自然；同时使用更多模型也会增加内存占用。
+
+### DeepSeek 与 Claude
+
+在翻译服务下拉菜单选择 **DeepSeek** 或 **Claude**，分别填写自己的 API 密钥。两者的地址、模型和规则独立保存，切换不会覆盖 OpenAI 兼容接口配置。默认地址分别为 `https://api.deepseek.com` 和 `https://api.anthropic.com/v1`；默认模型分别为 `deepseek-flash` 和 `claude-haiku-5-5`，可改成账号实际可用的模型 ID。订阅聊天产品并不等于已有 API 额度。
+
+DeepSeek 复用 OpenAI 兼容的 Chat Completions 协议；Claude 使用原生 Messages API 和 `x-api-key`/`anthropic-version` 认证。两者沿用术语保护和逐条 JSON 校验。Claude 每次请求最多允许输出 8192 tokens，触及输出上限时保留旧译文并报告失败，可降低单次翻译数后重试。服务可用模型及计费以官方为准：[DeepSeek 文档](https://api-docs.deepseek.com/)、[Claude 文档](https://platform.claude.com/docs/en/api/messages/create)。
+
 ### 安装与首次使用
 
-1. 下载完整安装包 **`Gesvds-RimLingo-LibreTranslate-win64.zip`**。GitHub 的 **Code → Download ZIP** 是源码包，不含大型离线运行文件；普通玩家应使用完整安装包，无需自行编译 DLL。
+1. 下载完整安装包 **`Gesvds-RimLingo-v1.3.0-LibreTranslate-win64.zip`**。GitHub 的 **Code → Download ZIP** 是源码包，不含大型离线运行文件；普通玩家应使用完整安装包，无需自行编译 DLL。
 2. 手动安装时，将解压出来的 **`RimLingo` 文件夹**放入 RimWorld 的 `Mods` 目录。进入该文件夹后，应直接看到 `About`、`Assemblies`、`Languages` 和 `LocalEngine`，不要再多套一层目录。
 3. 在游戏模组列表中启用 **Gesvd’s RimLingo: a runtime translator for RimWorld**，按游戏提示重新加载。
 4. 打开 **选项 → 模组设置 → Gesvd的边缘翻译**。游戏使用简体中文时，会自动显示内置的官方中文界面，无需先启动机器翻译。界面分为任务、模组、翻译服务、译文预览、状态和词汇库。英文游戏界面中仍显示 Gesvd’s RimLingo。
-5. 在模组页勾选要处理的模组，在任务页填写源语言和目标语言，在服务页选择翻译方式，再点击开始。任务可以暂停、继续或取消。
+5. 在模组页勾选要处理的模组，在任务页从下拉菜单选择源语言和目标语言，在服务页选择翻译方式，再点击开始。任务可以暂停、继续或取消。
 
 单次最大翻译数支持滑动条和数值输入：滑动条范围为 **1–50**，手动输入可以超过 50（仅限正整数）。修改会从下一次请求起生效，正文与词汇库翻译均适用。过大的数值可能导致游戏卡顿，或超出翻译服务的请求限制；请按实际情况逐步增加。
 
@@ -28,9 +44,9 @@ Authors: Gesvd & Codex.
 
 完整包已包含 LibreTranslate、独立 Python 运行时和英中模型。**玩家不需要另装 LibreTranslate、Python 或 Docker，也不需要 API Key，运行时可以断网。**
 
-在 `Provider` 页选择 **LibreTranslate**，勾选 **Use bundled offline engine (Windows, English to Chinese)**。源语言填 `English`，目标语言填 `ChineseSimplified`。第一次发起翻译时会在后台加载模型，只监听本机回环地址；退出游戏时会停止引擎进程。
+在 `Provider` 页选择 **LibreTranslate**，勾选 **Use bundled offline engine (Windows, installed language packs)**。源语言选择“英语”，目标语言选择“简体中文”。第一次发起翻译时会在后台加载模型，只监听本机回环地址；退出游戏时会停止引擎进程。
 
-当前内置引擎仅支持 **Windows x64、英文 → 简体中文**。其他语言或翻译服务可以使用 OpenAI 兼容 API、外部 LibreTranslate，或已配置好的 Lara SDK 本地桥接。详细的离线包说明和日志位置见 [LocalEngine/README.md](LocalEngine/README.md)。
+基础包支持 **Windows x64、英文 → 简体中文**；安装对应的可选扩展包后支持中、英、日、韩、俄、德、法、西班牙、葡萄牙语之间的翻译，非英语之间通常经英语中转。其他翻译服务可使用 OpenAI 兼容 API、DeepSeek、Claude、外部 LibreTranslate，或 Lara SDK 本地桥接。详细的离线包说明和日志位置见 [LocalEngine/README.md](LocalEngine/README.md)。
 
 ### 自带译文优先、DLC 排除与跳过选项
 
@@ -133,7 +149,7 @@ Preview's **Replace next 50** processes each matching record once per operation,
 
 ## Translating This Mod
 
-The official Simplified Chinese UI is bundled in `Languages/ChineseSimplified/Keyed/RuntimeTranslator.xml` and follows the game language automatically. Its Chinese brand name is **Gesvd的边缘翻译**. Native translations take priority over old machine-translation caches; the mod skips its own translated UI when targeting Simplified Chinese. Other target languages can still translate its settings by selecting this mod in **Mods**. The English source table remains in `Languages/English/Keyed/RuntimeTranslator.xml`; both tables contain 120 matching keys. The package ID is `gesvd.rimlingo`; cache paths and diagnostic identifiers remain unchanged. Older self-selection and self-translation cache IDs are migrated automatically.
+The official Simplified Chinese UI is bundled in `Languages/ChineseSimplified/Keyed/RuntimeTranslator.xml` and follows the game language automatically. Its Chinese brand name is **Gesvd的边缘翻译**. Native translations take priority over old machine-translation caches; the mod skips its own translated UI when targeting Simplified Chinese. Other target languages can still translate its settings by selecting this mod in **Mods**. The English source table remains in `Languages/English/Keyed/RuntimeTranslator.xml`; both tables contain 140 matching keys. The package ID is `gesvd.rimlingo`; cache paths and diagnostic identifiers remain unchanged. Older self-selection and self-translation cache IDs are migrated automatically.
 
 ## Interrupting Work On Exit
 
@@ -154,7 +170,7 @@ English-to-Simplified-Chinese starts with `pawn` and `pawns` mapped to `小人`.
 
 Discovery reads common text fields in the active mod version's `Defs` XML and leaf text in `Languages/English` XML. It excludes English stop words, formatting tokens, IDs, and non-English language files. Malformed or unreadable XML files are skipped with a log warning. Counts are for the selected files, not an exhaustive linguistic analysis; singular/plural forms are separate editable terms.
 
-All three providers protect confirmed terms as placeholders and restore the exact preferred wording. Matching ignores case, uses whole-word boundaries, and prioritizes longer phrases. Format tags and variables remain protected. A provider that damages these placeholders fails the batch rather than storing inconsistent terms. A word with several meanings uses the same preferred wording throughout the language pair; clear or remove a term if that is unsuitable.
+All providers protect confirmed terms as placeholders and restore the exact preferred wording. Matching ignores case, uses whole-word boundaries, and prioritizes longer phrases. Format tags and variables remain protected. A provider that damages these placeholders fails the batch rather than storing inconsistent terms. A word with several meanings uses the same preferred wording throughout the language pair; clear or remove a term if that is unsuitable.
 
 **Apply glossary to cached translations** starts a normal pausable/cancellable task using the current provider and current language pair. It retranslates affected cached original text from loaded mods with the active glossary, including manually edited matching cache entries, and may use API quota. Successful results replace obsolete cache variants for that same original; failed or cancelled items keep their previous translations. It ignores glossary search/page and mod selection, skips cleared/unrelated/other-language/native-protected entries and unloaded or changed-source cache entries, and follows the current apply/export switches.
 
@@ -224,7 +240,7 @@ Apart from its own keyed settings interface, it does not yet patch every other m
 
 ## Bundled offline translation
 
-Windows x64 users can select LibreTranslate and enable **Use bundled offline engine (Windows, English to Chinese)**. The included engine runs independently on the local machine, uses the existing glossary and requires no API key or internet at runtime. Only English → ChineseSimplified is bundled. See [LocalEngine/README.md](LocalEngine/README.md) for packaging, rebuilding, logs, and [license/source obligations](LocalEngine/THIRD_PARTY_NOTICES.md).
+Windows x64 users can select LibreTranslate and enable **Use bundled offline engine (Windows, installed language packs)**. The included engine runs independently on the local machine, uses the existing glossary and requires no API key or internet at runtime. The base includes English → ChineseSimplified. Optional LanguagePacks add English-pivot translation among Chinese, English, Japanese, Korean, Russian, German, French, Spanish and Portuguese. Language packs are standalone expansion mods: subscribe on Steam Workshop after publication, or extract a pack ZIP into RimWorld/Mods, then enable both RimLingo v1.3.0 and the expansion in the game mod list. Each pack declares its dependency and load-after order. The base discovers enabled mod roots automatically, including numeric Workshop paths; disabled expansions are not loaded. No manual copying into the base mod is needed. Offline language dropdowns show reachable installed routes; Auto and Traditional Chinese remain online-only with the provided packs. See [LocalEngine/README.md](LocalEngine/README.md) for packaging, rebuilding, logs, and [license/source obligations](LocalEngine/THIRD_PARTY_NOTICES.md).
 
 ## License / 许可证
 
@@ -253,3 +269,9 @@ Existing target-language translations always take priority, including when **Ski
 For the current game language, RimLingo snapshots the game's loaded Keyed and DefInjected tables, including separate translation mods and injections on base Def classes. For a different target language it reads the active mods' matching language XML instead. These indexes are prepared when needed for a task, preview application or export, with no new scan during game startup. A game-language object change rebuilds the snapshot; installing/changing mod files still requires the normal game reload. Native priority applies to the translator's supported fields and its own Keyed UI; it does not add translation hooks to every mod's hardcoded UI.
 
 The translator keeps existing text when requests fail, results are missing, or a response contains only whitespace, zero-width format characters or empty markup. Clearing an automatic translation restores the original text rather than displaying an empty string. Explicit OpenAI-compatible `content_filter` and `message.refusal` responses fail the batch without becoming translations. Existing good translations and source text remain available. RimLingo does not perform content censorship; an external provider may still refuse or return an inaccurate nonempty translation, which cannot always be identified automatically.
+
+## v1.3.0 API providers and language packs
+
+DeepSeek has independent base URL, model, key and rules; it uses the existing Chat Completions adapter. Claude has separate configuration and uses the native `/v1/messages` endpoint with `x-api-key` and `anthropic-version: 2023-06-01`. Its request allows 8192 output tokens; incomplete/refused responses fail without replacing existing translations. Both share glossary and JSON/placeholder validation. Default model IDs remain editable.
+
+Source and target languages are dropdowns. Offline choices reflect installed models and reachable pivot routes; online providers offer the supported common languages plus Traditional Chinese and source-only Auto. Install selected ZIPs from `LanguagePacks/` like normal RimWorld mods and enable them alongside the v1.3.0 base mod; individual language READMEs explain the layout. The base release excludes optional model weights. Additional model use increases RAM and disk usage; pivot translation can be slower and less accurate.

@@ -18,13 +18,13 @@ namespace RuntimeTranslator
 
         public string DisplayName
         {
-            get { return settings.UseBundledLibreTranslate ? "LibreTranslate (bundled en-zh 1.9)" : "LibreTranslate"; }
+            get { return settings.UseBundledLibreTranslate ? "LibreTranslate (bundled v1.3.0)" : "LibreTranslate"; }
         }
 
         public async Task<TranslationBatchResult> TranslateBatchAsync(TranslationBatchRequest request, CancellationToken cancellationToken)
         {
-            if (settings.UseBundledLibreTranslate && (NormalizeLanguage(request.SourceLanguage) != "en" || NormalizeLanguage(request.TargetLanguage) != "zh"))
-                throw new InvalidOperationException("Bundled LibreTranslate supports only English to ChineseSimplified.");
+            if (settings.UseBundledLibreTranslate && !BundledLibreTranslate.CanTranslate(request.SourceLanguage, request.TargetLanguage))
+                throw new InvalidOperationException("No installed offline model route for this language pair. Enable the required RimLingo language expansion mods and restart RimWorld; Auto is available only with online providers.");
             TranslationBatchResult result = new TranslationBatchResult();
             List<GlossaryTerm> terms = Glossary.ForLanguages(settings, request.SourceLanguage, request.TargetLanguage);
             string baseUrl = settings.UseBundledLibreTranslate
@@ -66,24 +66,7 @@ namespace RuntimeTranslator
 
         private static string NormalizeLanguage(string language)
         {
-            string normalized = (language ?? string.Empty).Trim().ToLowerInvariant();
-            if (normalized == "english")
-            {
-                return "en";
-            }
-            if (normalized == "chinesesimplified" || normalized == "chinese" || normalized == "zh")
-            {
-                return "zh";
-            }
-            if (normalized == "japanese")
-            {
-                return "ja";
-            }
-            if (normalized == "korean")
-            {
-                return "ko";
-            }
-            return normalized;
+            return LanguageCatalog.Code(language);
         }
 
         private static string CombineUrl(string baseUrl, string path)

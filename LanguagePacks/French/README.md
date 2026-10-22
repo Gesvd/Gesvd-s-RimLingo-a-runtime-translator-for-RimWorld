@@ -1,0 +1,9 @@
+# RimLingo v1.3.0 — Français
+
+Installez ce dossier comme un mod normal dans RimWorld/Mods, ou abonnez-vous via le Steam Workshop. Activez RimLingo et ce pack dans la liste des mods. Modèles anglais ↔ français. Aucun déplacement manuel des modèles n’est nécessaire.
+
+Install like a normal RimWorld mod: extract the ZIP into RimWorld/Mods, or subscribe on Steam Workshop after publication. Enable the base RimLingo mod and this expansion in the game mod list, with the base first. The base detects enabled expansion paths automatically, including numeric Workshop directories. No model files need to be copied into the base mod. Restart after enabling/disabling packs.
+
+Select LibreTranslate → Use bundled offline engine. Other non-English pairs need the corresponding endpoint packs and may pivot through English, with slower or less accurate results.
+
+Package ID: `gesvd.rimlingo.language.french`. Model downloads and SHA-256 are recorded in manifest.json. Original model README files retain author, license and training-data attribution. The bundle omits unused Stanza/MiniSBD files and uses RimLingo’s existing sentence splitter; model weights are unchanged. Retain About/, models/, licenses/, manifest.json and this README when redistributing.

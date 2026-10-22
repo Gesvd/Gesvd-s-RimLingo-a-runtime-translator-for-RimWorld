@@ -12,15 +12,17 @@ namespace RuntimeTranslator
     public sealed class OpenAiCompatibleProvider : ITranslationProvider
     {
         private readonly RuntimeTranslatorSettings settings;
+        private readonly string displayName;
 
-        public OpenAiCompatibleProvider(RuntimeTranslatorSettings settings)
+        public OpenAiCompatibleProvider(RuntimeTranslatorSettings settings, string displayName = "OpenAI-compatible")
         {
             this.settings = settings;
+            this.displayName = displayName;
         }
 
         public string DisplayName
         {
-            get { return "OpenAI-compatible"; }
+            get { return displayName; }
         }
 
         public async Task<TranslationBatchResult> TranslateBatchAsync(TranslationBatchRequest request, CancellationToken cancellationToken)
@@ -36,7 +38,7 @@ namespace RuntimeTranslator
                     new OpenAiMessage
                     {
                         role = "system",
-                        content = "You translate RimWorld mod text. Preserve placeholders like __RT_TOKEN_0__ and all paragraph breaks. Return only a JSON array of objects with id and text fields, one per input item. Keep each id unchanged; put the translation in text. Escape line breaks inside JSON strings. Do not add explanations. Rules: " + (settings.OpenAiRules ?? string.Empty)
+                        content = SystemPrompt(settings.OpenAiRules)
                     },
                     new OpenAiMessage
                     {
@@ -77,7 +79,12 @@ namespace RuntimeTranslator
             return ParseResult(request, protectedTexts, choice?.message?.content);
         }
 
-        private static string BuildPrompt(TranslationBatchRequest request, List<ProtectedText> protectedTexts)
+        internal static string SystemPrompt(string rules)
+        {
+            return "You translate RimWorld mod text. Preserve placeholders like __RT_TOKEN_0__ and all paragraph breaks. Return only a JSON array of objects with id and text fields, one per input item. Keep each id unchanged; put the translation in text. Escape line breaks inside JSON strings. Do not add explanations. Rules: " + (rules ?? string.Empty);
+        }
+
+        internal static string BuildPrompt(TranslationBatchRequest request, List<ProtectedText> protectedTexts)
         {
             StringBuilder builder = new StringBuilder();
             builder.AppendLine("Source language: " + request.SourceLanguage);
@@ -92,7 +99,7 @@ namespace RuntimeTranslator
             return builder.ToString();
         }
 
-        private static TranslationBatchResult ParseResult(TranslationBatchRequest request, List<ProtectedText> protectedTexts, string content)
+        internal static TranslationBatchResult ParseResult(TranslationBatchRequest request, List<ProtectedText> protectedTexts, string content)
         {
             TranslationBatchResult result = new TranslationBatchResult();
             Dictionary<string, ProtectedText> protectionById = new Dictionary<string, ProtectedText>();

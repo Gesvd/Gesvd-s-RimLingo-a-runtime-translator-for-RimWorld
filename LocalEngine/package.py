@@ -3,10 +3,12 @@
 import hashlib
 from pathlib import Path
 import zipfile
+import xml.etree.ElementTree as ET
 
 ENGINE = Path(__file__).resolve().parent
 ROOT = ENGINE.parent
-OUTPUT = ROOT / 'Releases' / 'Gesvds-RimLingo-LibreTranslate-win64.zip'
+VERSION = ET.parse(ROOT / 'RuntimeTranslator.csproj').findtext('PropertyGroup/Version')
+OUTPUT = ROOT / 'Releases' / f'Gesvds-RimLingo-v{VERSION}-LibreTranslate-win64.zip'
 
 
 def main():
@@ -15,8 +17,19 @@ def main():
             raise RuntimeError('Missing release input: ' + required)
     if not (ROOT / 'Assemblies' / 'RuntimeTranslator.dll').is_file():
         raise RuntimeError('Build the C# mod first')
+    sources = ENGINE / 'sources.zip'
+    replacement = sources.with_suffix('.tmp')
+    own = {path.name: path for path in ENGINE.iterdir() if path.is_file() and path.suffix in ('.py', '.ps1', '.md')}
+    with zipfile.ZipFile(sources) as original, zipfile.ZipFile(replacement, 'w', zipfile.ZIP_STORED) as updated:
+        for item in original.infolist():
+            if item.filename not in own:
+                updated.writestr(item, original.read(item.filename))
+        for name, path in own.items():
+            updated.write(path, name)
+    replacement.replace(sources)
     OUTPUT.parent.mkdir(exist_ok=True)
-    files = [ROOT / name for name in ('LICENSE', 'LICENSE-EXCEPTION.md', 'LICENSING.md', 'README.md', 'RuntimeTranslator.csproj')]
+    files = [ROOT / name for name in ('LICENSE', 'LICENSE-EXCEPTION.md', 'LICENSING.md', 'README.md', 'CHANGELOG.md', 'RuntimeTranslator.csproj')]
+    files.extend(ROOT / name for name in ('LanguagePacks/README.md', 'LanguagePacks/English/README.md'))
     for folder in ('About', 'Languages', 'Assemblies', 'Source'):
         files.extend(path for path in (ROOT / folder).rglob('*') if path.is_file())
     for folder in ('runtime', 'models/packages', 'licenses'):

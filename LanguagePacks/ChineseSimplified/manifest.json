@@ -1,0 +1,15 @@
+{
+  "version": "1.3.0",
+  "language": "ChineseSimplified",
+  "models": [
+    {
+      "from_code": "zh",
+      "to_code": "en",
+      "version": "1.9",
+      "url": "https://argos-net.com/v1/translate-zh_en-1_9.argosmodel",
+      "sha256": "62e7af5a3a48b530e47b7b3e5c78c2de79073ecd815750d2bf3ab35b4a67da2d",
+      "model": "translate-zh_en-1_9",
+      "upstream_readme": "models/packages/translate-zh_en-1_9/README.md"
+    }
+  ]
+}

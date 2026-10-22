@@ -53,15 +53,8 @@ namespace RuntimeTranslator
 
         public static string LanguageKey(string language)
         {
-            string key = (language ?? string.Empty).Trim().ToLowerInvariant();
-            switch (key)
-            {
-                case "auto": case "english": case "en": return "en";
-                case "chinesesimplified": case "chinese": case "zh": case "zh-cn": case "zh-hans": return "zh";
-                case "japanese": return "ja";
-                case "korean": return "ko";
-                default: return key;
-            }
+            string code = LanguageCatalog.Code(language);
+            return code == "auto" ? "en" : code;
         }
 
         public static List<GlossaryTerm> ForLanguages(RuntimeTranslatorSettings settings, string source, string target)

@@ -24,6 +24,7 @@ namespace RuntimeTranslator.Tests
             settings.UseBundledLibreTranslate = false;
             Check(snapshot.UseBundledLibreTranslate && new LibreTranslateProvider(snapshot).DisplayName != new LibreTranslateProvider(settings).DisplayName,
                 "bundled engine choice is snapshotted and its cache provider identity is separate");
+            BundledLibreTranslate.Initialize(Path.Combine(folder, "missing-engine"), folder);
             bool rejected = false;
             try
             {
@@ -56,6 +57,27 @@ namespace RuntimeTranslator.Tests
                 }
                 finally { BundledLibreTranslate.Stop(); BundledLibreTranslate.Stop(); }
                 Check(BundledLibreTranslate.Status == "Stopped", "owned engine stop is safe to repeat");
+                string japaneseRoot = Path.Combine(root, "LanguagePacks", "Japanese");
+                if (File.Exists(Path.Combine(japaneseRoot, "About", "About.xml")))
+                {
+                    Verse.ModContentPack japanese = new Verse.ModContentPack { RootDir = japaneseRoot, PackageIdPlayerFacing = "gesvd.rimlingo.language.japanese" };
+                    Verse.LoadedModManager.RunningMods.Add(japanese);
+                    BundledLibreTranslate.Initialize(root, Path.Combine(folder, "expansion-engine"));
+                    try
+                    {
+                        TranslationBatchResult expanded = new LibreTranslateProvider(snapshot).TranslateBatchAsync(new TranslationBatchRequest
+                        {
+                            SourceLanguage = "English", TargetLanguage = "Japanese",
+                            Entries = new List<TranslationEntry> { new TranslationEntry { Id = "japanese", SourceText = "Hello world." } }
+                        }, CancellationToken.None).GetAwaiter().GetResult();
+                        Check(expanded.Translations["japanese"].Any(c => c >= 0x3040 && c <= 0x9fff),
+                            "real C# launcher passes enabled expansion mod paths to the offline engine");
+                    }
+                    finally { BundledLibreTranslate.Stop(); Verse.LoadedModManager.RunningMods.Remove(japanese); }
+                    BundledLibreTranslate.Initialize(root, Path.Combine(folder, "disabled-expansion"));
+                    Check(!BundledLibreTranslate.CanTranslate("English", "Japanese"), "disabled real expansion is not rediscovered through its development folder");
+                }
+
             }
             return passed;
         }

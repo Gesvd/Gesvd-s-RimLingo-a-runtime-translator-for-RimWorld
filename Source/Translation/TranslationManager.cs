@@ -63,6 +63,12 @@ namespace RuntimeTranslator
                 return;
             }
 
+            if (!LanguageCatalog.IsSupported(settings.SourceLanguage, true) || !LanguageCatalog.IsSupported(settings.TargetLanguage, false))
+            {
+                Messages.Message(UiText.Get("Choose source and target languages from the dropdown menus."), MessageTypeDefOf.RejectInput, false);
+                return;
+            }
+
             if (!applyGlossary && (settings.SelectedPackageIds == null || settings.SelectedPackageIds.Count == 0))
             {
                 Messages.Message(UiText.Get("Select at least one mod before starting translation."), MessageTypeDefOf.RejectInput, false);

@@ -8,7 +8,9 @@ namespace RuntimeTranslator
     {
         OpenAiCompatible,
         LibreTranslate,
-        LaraTranslate
+        LaraTranslate,
+        DeepSeek,
+        Claude
     }
 
     public sealed class RuntimeTranslatorSettings : ModSettings
@@ -23,6 +25,14 @@ namespace RuntimeTranslator
         public string OpenAiModel = "gpt-4.1-mini";
         public string OpenAiApiKey = string.Empty;
         public string OpenAiRules = "Translate RimWorld mod text naturally. Preserve placeholders, XML-like tags, variables, numbers, and game terms.";
+        public string DeepSeekBaseUrl = "https://api.deepseek.com";
+        public string DeepSeekModel = "deepseek-flash";
+        public string DeepSeekApiKey = string.Empty;
+        public string DeepSeekRules = "Translate RimWorld mod text naturally. Preserve placeholders, tags, variables and paragraph breaks.";
+        public string ClaudeBaseUrl = "https://api.anthropic.com/v1";
+        public string ClaudeModel = "claude-haiku-5-5";
+        public string ClaudeApiKey = string.Empty;
+        public string ClaudeRules = "Translate RimWorld mod text naturally. Preserve placeholders, tags, variables and paragraph breaks.";
         public string LibreTranslateUrl = "http://localhost:5000";
         public string LibreTranslateApiKey = string.Empty;
         public bool UseBundledLibreTranslate;
@@ -56,6 +66,14 @@ namespace RuntimeTranslator
             Scribe_Values.Look(ref OpenAiModel, "openAiModel", "gpt-4.1-mini");
             Scribe_Values.Look(ref OpenAiApiKey, "openAiApiKey", string.Empty);
             Scribe_Values.Look(ref OpenAiRules, "openAiRules", "Translate RimWorld mod text naturally. Preserve placeholders, XML-like tags, variables, numbers, and game terms.");
+            Scribe_Values.Look(ref DeepSeekBaseUrl, "deepSeekBaseUrl", "https://api.deepseek.com");
+            Scribe_Values.Look(ref DeepSeekModel, "deepSeekModel", "deepseek-flash");
+            Scribe_Values.Look(ref DeepSeekApiKey, "deepSeekApiKey", string.Empty);
+            Scribe_Values.Look(ref DeepSeekRules, "deepSeekRules", "Translate RimWorld mod text naturally. Preserve placeholders, tags, variables and paragraph breaks.");
+            Scribe_Values.Look(ref ClaudeBaseUrl, "claudeBaseUrl", "https://api.anthropic.com/v1");
+            Scribe_Values.Look(ref ClaudeModel, "claudeModel", "claude-haiku-5-5");
+            Scribe_Values.Look(ref ClaudeApiKey, "claudeApiKey", string.Empty);
+            Scribe_Values.Look(ref ClaudeRules, "claudeRules", "Translate RimWorld mod text naturally. Preserve placeholders, tags, variables and paragraph breaks.");
             Scribe_Values.Look(ref LibreTranslateUrl, "libreTranslateUrl", "http://localhost:5000");
             Scribe_Values.Look(ref LibreTranslateApiKey, "libreTranslateApiKey", string.Empty);
             Scribe_Values.Look(ref UseBundledLibreTranslate, "useBundledLibreTranslate", false);

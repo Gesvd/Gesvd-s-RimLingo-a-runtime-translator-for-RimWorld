@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ModMetaData>
+  <name>RimLingo Language Pack — Deutsch</name>
+  <author>Gesvd &amp; Codex</author>
+  <packageId>gesvd.rimlingo.language.german</packageId>
+  <supportedVersions>
+    <li>1.5</li>
+    <li>1.6</li>
+  </supportedVersions>
+  <modDependencies>
+    <li>
+      <packageId>gesvd.rimlingo</packageId>
+      <displayName>Gesvd’s RimLingo</displayName>
+    </li>
+  </modDependencies>
+  <loadAfter>
+    <li>gesvd.rimlingo</li>
+  </loadAfter>
+  <description>Wie einen normalen Mod unter RimWorld/Mods installieren oder im Steam Workshop abonnieren. RimLingo und dieses Sprachpaket in der Modliste aktivieren. Enthält Englisch ↔ Deutsch. Modelldateien müssen nicht manuell verschoben werden.
+
+RimLingo v1.3.0 optional offline language mod. Enable after the base mod. Models are detected automatically; no manual path configuration or file copying is required. Other non-English language pairs may need both endpoint packs and use English as a pivot.</description>
+</ModMetaData>

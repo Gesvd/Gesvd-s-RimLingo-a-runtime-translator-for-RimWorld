@@ -16,3 +16,8 @@ LocalEngine/__pycache__/
 LocalEngine/sources.zip
 LocalEngine/test-data/
 Releases/
+/release/RimLingo/
+
+LanguagePacks/*/models/
+LanguagePacks/*.zip
+LanguagePacks/*.zip.sha256

@@ -23,8 +23,13 @@ def main():
     # A disposable parent verifies cleanup after an unexpected game exit.
     parent = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(180)'], creationflags=subprocess.CREATE_NO_WINDOW)
     with tempfile.TemporaryDirectory(prefix='rim-local-engine-') as data:
+        pack_args = []
+        if os.environ.get('RT_TEST_LANGUAGE_PACKS') == '1':
+            for folder in sorted((ROOT.parent / 'LanguagePacks').iterdir()):
+                if (folder / 'About' / 'About.xml').is_file():
+                    pack_args.extend(['--pack', str(folder)])
         process = subprocess.Popen([sys.executable, '-X', 'utf8', str(ROOT / 'serve.py'), '--port', str(port),
-                                    '--parent-pid', str(parent.pid), '--identity', identity, '--data', data],
+                                    '--parent-pid', str(parent.pid), '--identity', identity, '--data', data] + pack_args,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
         try:
             deadline = time.monotonic() + 120
@@ -46,6 +51,12 @@ def main():
                     headers={'Content-Type': 'application/json'})
                 with opener.open(request, timeout=60) as response:
                     return json.load(response)['translatedText']
+            with opener.open(endpoint + '/runtime-translator/languages', timeout=10) as response:
+                inventory = json.load(response)
+            assert 'en' in inventory['languages'] and 'zh' in inventory['languages']
+            if not pack_args:
+                assert inventory['languages'] == ['en', 'zh'], 'Disabled expansion mods must not be loaded'
+            print('PASS: installed offline languages: ' + ', '.join(inventory['languages']), flush=True)
             output = translate('Hello world. This is a colony on a distant planet.')
             assert any('\u4e00' <= c <= '\u9fff' for c in output), output
             print('PASS: real English -> Chinese translation: ' + output, flush=True)
@@ -57,7 +68,7 @@ def main():
             assert translate('__RT_TOKEN_0__') == '__RT_TOKEN_0__'
             assert translate('') == ''
             try:
-                translate('Hello', target='ja')
+                translate('Hello', target='xx')
                 raise AssertionError('Unsupported target accepted')
             except urllib.error.HTTPError as error:
                 assert error.code == 400
@@ -71,6 +82,23 @@ def main():
             with opener.open(endpoint + '/runtime-translator/source', timeout=10) as response:
                 assert response.read(2) == b'PK'
             print('PASS: invalid input/language rejected; corresponding source available', flush=True)
+            if os.environ.get('RT_TEST_LANGUAGE_PACKS') == '1':
+                samples = {'zh': '这是一个遥远星球上的殖民地。', 'ja': 'これは遠い惑星の植民地です。',
+                           'ko': '이곳은 먼 행성의 식민지입니다.', 'ru': 'Это колония на далёкой планете.',
+                           'de': 'Dies ist eine Kolonie auf einem fernen Planeten.',
+                           'fr': 'C’est une colonie sur une planète lointaine.',
+                           'es': 'Esta es una colonia en un planeta lejano.',
+                           'pt': 'Esta é uma colónia num planeta distante.'}
+                for code in sorted(samples):
+                    assert code in inventory['languages'], 'Missing pack: ' + code
+                    output = translate('This is a colony on a distant planet.', target=code)
+                    assert output.strip() and '__RT_TOKEN_' not in output, (code, output)
+                    back = translate(samples[code], source=code, target='en')
+                    assert back.strip() and any(c.isascii() and c.isalpha() for c in back), (code, back)
+                    print('PASS: real en <-> ' + code + ': ' + output + ' / ' + back, flush=True)
+                output = translate('__RT_TOKEN_0__ ' + samples['ja'], source='ja', target='zh')
+                assert output.count('__RT_TOKEN_0__') == 1 and any('\u4e00' <= c <= '\u9fff' for c in output), output
+                print('PASS: Japanese -> English -> Chinese pivot with protected glossary token: ' + output, flush=True)
             parent.terminate()
             parent.wait(timeout=10)
             process.wait(timeout=10)

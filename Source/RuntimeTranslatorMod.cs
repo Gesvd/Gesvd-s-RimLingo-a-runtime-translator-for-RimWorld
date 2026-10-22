@@ -46,6 +46,7 @@ namespace RuntimeTranslator
             LongEventHandler.ExecuteWhenFinished(() =>
             {
                 ModTextScanner.ExcludeOfficialSelections(Settings);
+                BundledLibreTranslate.Initialize(content.RootDir, System.IO.Path.Combine(GenFilePaths.ConfigFolderPath, "RuntimeTranslator", "LocalEngine"));
                 GameObject updater = new GameObject("RuntimeTranslator");
                 UnityEngine.Object.DontDestroyOnLoad(updater);
                 updater.AddComponent<TranslationUpdate>();
@@ -187,8 +188,8 @@ namespace RuntimeTranslator
         private void DrawLanguageSection(Listing_Standard listing)
         {
             listing.Label(UiText.Get("Languages"));
-            Settings.SourceLanguage = TextFieldLabeled(listing, UiText.Get("Source language"), Settings.SourceLanguage);
-            Settings.TargetLanguage = TextFieldLabeled(listing, UiText.Get("Target language"), Settings.TargetLanguage);
+            DrawLanguageDropdown(listing, true);
+            DrawLanguageDropdown(listing, false);
             Settings.BatchSize = IntSliderLabeled(listing, UiText.Get("Batch size (next request)"), Settings.BatchSize, 1, 50, ref batchSizeBuffer);
             listing.Label(UiText.Get("Slider: 1-50. Enter a larger number manually. Very large batches may cause game stuttering or exceed the translation service limits."));
             Settings.SkipCompletedTranslations = listing.CheckboxLabeledReturn(UiText.Get("Skip completed translations (reuse valid cache)"), Settings.SkipCompletedTranslations);
@@ -196,6 +197,30 @@ namespace RuntimeTranslator
             listing.Label(UiText.Get("Existing target-language translations always take priority. Only missing text is translated."));
             Settings.ApplyRuntimeTranslations = listing.CheckboxLabeledReturn(UiText.Get("Apply translations to loaded Defs"), Settings.ApplyRuntimeTranslations);
             Settings.ExportLanguageFiles = listing.CheckboxLabeledReturn(UiText.Get("Export RimWorld language files"), Settings.ExportLanguageFiles);
+        }
+
+        private void DrawLanguageDropdown(Listing_Standard listing, bool source)
+        {
+            string value = source ? Settings.SourceLanguage : Settings.TargetLanguage;
+            bool offline = Settings.ProviderKind == ProviderKind.LibreTranslate && Settings.UseBundledLibreTranslate;
+            IEnumerable<string> choices = LanguageCatalog.Values;
+            if (source && !offline) choices = new[] { "Auto" }.Concat(choices);
+            if (offline) choices = choices.Where(language => source
+                ? LanguageCatalog.Values.Any(target => BundledLibreTranslate.CanTranslate(language, target))
+                : BundledLibreTranslate.CanTranslate(Settings.SourceLanguage, language));
+            if (listing.ButtonText(UiText.Get(source ? "Source language" : "Target language") + ": " + UiText.Get(LanguageCatalog.Canonical(value))))
+            {
+                List<FloatMenuOption> options = choices.Select(language => new FloatMenuOption(UiText.Get(language), () =>
+                {
+                    if (source) Settings.SourceLanguage = language;
+                    else Settings.TargetLanguage = language;
+                    if (source && offline && !BundledLibreTranslate.CanTranslate(language, Settings.TargetLanguage))
+                        Settings.TargetLanguage = LanguageCatalog.Values.FirstOrDefault(target => BundledLibreTranslate.CanTranslate(language, target)) ?? Settings.TargetLanguage;
+                })).ToList();
+                if (options.Count > 0) Find.WindowStack.Add(new FloatMenu(options));
+            }
+            if (offline && !BundledLibreTranslate.CanTranslate(Settings.SourceLanguage, Settings.TargetLanguage))
+                listing.Label(UiText.Get("Enable the required language expansion mods alongside RimLingo, restart the game, then choose an available offline language pair. Auto requires an online provider."));
         }
 
         private void DrawProviderSection(Listing_Standard listing)
@@ -215,6 +240,21 @@ namespace RuntimeTranslator
             {
                 case ProviderKind.OpenAiCompatible:
                     DrawOpenAiProviderSettings(listing);
+                    break;
+                case ProviderKind.DeepSeek:
+                    listing.Label(UiText.Get("DeepSeek"));
+                    Settings.DeepSeekBaseUrl = TextFieldLabeled(listing, UiText.Get("API URL"), Settings.DeepSeekBaseUrl);
+                    Settings.DeepSeekModel = TextFieldLabeled(listing, UiText.Get("Model"), Settings.DeepSeekModel);
+                    Settings.DeepSeekApiKey = PasswordFieldLabeled(listing, UiText.Get("API key"), Settings.DeepSeekApiKey);
+                    Settings.DeepSeekRules = TextAreaLabeled(listing, UiText.Get("Rules"), Settings.DeepSeekRules, 96f);
+                    break;
+                case ProviderKind.Claude:
+                    listing.Label(UiText.Get("Claude (Anthropic Messages API)"));
+                    Settings.ClaudeBaseUrl = TextFieldLabeled(listing, UiText.Get("API URL"), Settings.ClaudeBaseUrl);
+                    Settings.ClaudeModel = TextFieldLabeled(listing, UiText.Get("Model"), Settings.ClaudeModel);
+                    Settings.ClaudeApiKey = PasswordFieldLabeled(listing, UiText.Get("API key"), Settings.ClaudeApiKey);
+                    Settings.ClaudeRules = TextAreaLabeled(listing, UiText.Get("Rules"), Settings.ClaudeRules, 96f);
+                    listing.Label(UiText.Get("Claude output is limited to 8192 tokens per request; reduce the batch size if output is truncated."));
                     break;
                 case ProviderKind.LibreTranslate:
                     DrawLibreTranslateProviderSettings(listing);
@@ -237,7 +277,7 @@ namespace RuntimeTranslator
         private void DrawLibreTranslateProviderSettings(Listing_Standard listing)
         {
             listing.Label(UiText.Get("LibreTranslate"));
-            Settings.UseBundledLibreTranslate = listing.CheckboxLabeledReturn(UiText.Get("Use bundled offline engine (Windows, English to Chinese)"), Settings.UseBundledLibreTranslate);
+            Settings.UseBundledLibreTranslate = listing.CheckboxLabeledReturn(UiText.Get("Use bundled offline engine (Windows, installed language packs)"), Settings.UseBundledLibreTranslate);
             if (Settings.UseBundledLibreTranslate)
             {
                 listing.Label(UiText.Get("Starts on the first translation request. No API key required."));

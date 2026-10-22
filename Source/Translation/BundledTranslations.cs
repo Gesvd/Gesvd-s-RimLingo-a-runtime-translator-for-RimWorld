@@ -16,7 +16,7 @@ namespace RuntimeTranslator
         {
             string key = Glossary.LanguageKey(language);
             if (key == "zh") return new[] { "ChineseSimplified", "Chinese", "zh", "zh-CN", "zh-Hans" };
-            if (key == "chinesetraditional" || key == "zh-tw" || key == "zh-hant") return new[] { "ChineseTraditional", "zh-TW", "zh-Hant" };
+            if (key == "zt" || key == "chinesetraditional" || key == "zh-tw" || key == "zh-hant") return new[] { "ChineseTraditional", "zh-TW", "zh-Hant" };
             return new string[0];
         }
 
@@ -69,7 +69,7 @@ namespace RuntimeTranslator
             if (languages.Length == 0)
             {
                 string key = Glossary.LanguageKey(target);
-                string canonical = key == "en" ? "English" : key == "ja" ? "Japanese" : key == "ko" ? "Korean" : target;
+                string canonical = LanguageCatalog.Canonical(target);
                 languages = new[] { canonical, key }.Where(name => !string.IsNullOrWhiteSpace(name) && name != "." && name != ".." && name.IndexOfAny(new[] { '/', '\\' }) < 0).Distinct().ToArray();
             }
             Dictionary<string, string> entries = new Dictionary<string, string>();

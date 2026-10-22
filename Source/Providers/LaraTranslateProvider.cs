@@ -87,28 +87,8 @@ namespace RuntimeTranslator
 
         private static string NormalizeLanguage(string language)
         {
-            string normalized = (language ?? string.Empty).Trim().ToLowerInvariant();
-            if (normalized == "english")
-            {
-                return "en";
-            }
-            if (normalized == "chinesesimplified" || normalized == "chinese" || normalized == "zh")
-            {
-                return "zh-CN";
-            }
-            if (normalized == "chinesetraditional")
-            {
-                return "zh-TW";
-            }
-            if (normalized == "japanese")
-            {
-                return "ja";
-            }
-            if (normalized == "korean")
-            {
-                return "ko";
-            }
-            return language ?? string.Empty;
+            string code = LanguageCatalog.Code(language);
+            return code == "zh" ? "zh-CN" : code == "zt" ? "zh-TW" : code;
         }
 
         private static string CombineUrl(string baseUrl, string path)

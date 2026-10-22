@@ -282,6 +282,7 @@ namespace RuntimeTranslator.Tests
             passed += BundledTranslationChecks.Run(Path.Combine(folder, "bundled-translation-checks"));
             passed += NativeTranslationChecks.Run(Path.Combine(folder, "native-translation-checks"));
             passed += GlossaryRefreshChecks.Run(Path.Combine(folder, "glossary-refresh-checks"));
+            passed += LanguageAndProviderChecks.Run(Path.Combine(folder, "language-provider-checks"));
             passed += SelfAndShutdownChecks.Run(Path.Combine(folder, "self-and-shutdown"));
             Console.WriteLine("Passed " + passed + " checks. Test data: " + folder);
         }

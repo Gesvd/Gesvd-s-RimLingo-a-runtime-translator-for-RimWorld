@@ -1,0 +1,24 @@
+{
+  "version": "1.3.0",
+  "language": "Portuguese",
+  "models": [
+    {
+      "from_code": "en",
+      "to_code": "pt",
+      "version": "1.9",
+      "url": "https://argos-net.com/v1/translate-en_pt-1_9.argosmodel",
+      "sha256": "0c5350a2fa5b923de1346edc0d42e08e38bab2e33cede3a0b9a48eb4281ad8a9",
+      "model": "translate-en_pt-1_9",
+      "upstream_readme": "models/packages/translate-en_pt-1_9/README.md"
+    },
+    {
+      "from_code": "pt",
+      "to_code": "en",
+      "version": "1.9",
+      "url": "https://argos-net.com/v1/translate-pt_en-1_9.argosmodel",
+      "sha256": "ae76df6f650895c16f2b582065014fab496755ca846ecb19fae81d51f332a38e",
+      "model": "translate-pt_en-1_9",
+      "upstream_readme": "models/packages/translate-pt_en-1_9/README.md"
+    }
+  ]
+}
