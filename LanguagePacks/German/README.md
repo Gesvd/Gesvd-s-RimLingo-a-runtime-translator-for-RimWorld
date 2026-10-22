@@ -1,4 +1,4 @@
-# RimLingo v1.3.0 — Deutsch
+# RimLingo v1.4.0 — Deutsch
 
 Wie einen normalen Mod unter RimWorld/Mods installieren oder im Steam Workshop abonnieren. RimLingo und dieses Sprachpaket in der Modliste aktivieren. Enthält Englisch ↔ Deutsch. Modelldateien müssen nicht manuell verschoben werden.
 

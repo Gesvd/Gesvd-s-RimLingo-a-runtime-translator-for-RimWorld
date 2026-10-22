@@ -88,9 +88,9 @@ namespace RuntimeTranslator.Tests
             List<string> active = ModTextScanner.SelectedContentFolders(settings);
             Check(active.Single() == Path.Combine(folder, "1.6") && !Glossary.ScanFiles(active).ContainsKey("obsolete"), "scan selects the mod's active version folders");
             pack.AllDefs = new List<Verse.Def> { new Verse.Def { defName = "PawnLabel", label = "A pawn sleeps." } };
-            string firstHash = ModTextScanner.Scan(settings).Single().SourceHash;
+            string firstHash = ModTextScanner.Scan(settings).Single(entry => entry.DefTypeName == "Def").SourceHash;
             settings.GlossaryTerms[0].Translation = "小人";
-            Check(ModTextScanner.Scan(settings).Single().SourceHash != firstHash, "actual scanner keys change when the glossary translation changes");
+            Check(ModTextScanner.Scan(settings).Single(entry => entry.DefTypeName == "Def").SourceHash != firstHash, "actual scanner keys change when the glossary translation changes");
             return passed;
         }
     }

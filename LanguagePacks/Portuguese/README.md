@@ -1,4 +1,4 @@
-# RimLingo v1.3.0 — Português
+# RimLingo v1.4.0 — Português
 
 Instale esta pasta como um mod normal em RimWorld/Mods ou subscreva na Steam Workshop. Ative RimLingo e este pacote na lista de mods. Inclui inglês ↔ português. Não é necessário mover os modelos manualmente.
 

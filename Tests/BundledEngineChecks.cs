@@ -51,6 +51,18 @@ namespace RuntimeTranslator.Tests
                     string translated = result.Translations["offline"];
                     Check(translated.Contains("小人") && translated.Contains("<b>") && translated.Contains("</b>") && translated.Contains("{0}") && !translated.Contains("__RT_TOKEN_"),
                         "real C# provider launches portable engine and restores glossary, tags and variables");
+                    var bulk = new LibreTranslateProvider(snapshot).TranslateBatchAsync(new TranslationBatchRequest
+                    {
+                        SourceLanguage = "English", TargetLanguage = "ChineseSimplified",
+                        Entries = new List<TranslationEntry>
+                        {
+                            new TranslationEntry { Id = "bulk-a", SourceText = "<b>The pawn needs food.</b> {0}" },
+                            new TranslationEntry { Id = "bulk-b", SourceText = "First paragraph.\n\nSecond paragraph." }
+                        }
+                    }, CancellationToken.None).GetAwaiter().GetResult();
+                    Check(bulk.Translations.Count == 2 && bulk.Errors.Count == 0 && bulk.Translations["bulk-a"].Contains("小人") &&
+                        bulk.Translations["bulk-a"].Contains("{0}") && bulk.Translations["bulk-b"].Contains("\n\n"),
+                        "real C# offline batch API preserves per-entry IDs, glossary tokens and paragraphs");
                     string endpoint = BundledLibreTranslate.GetEndpointAsync(CancellationToken.None).GetAwaiter().GetResult();
                     Check(BundledLibreTranslate.GetEndpointAsync(CancellationToken.None).GetAwaiter().GetResult() == endpoint,
                         "subsequent requests reuse the owned local process");

@@ -11,6 +11,7 @@ namespace RuntimeTranslator
 {
     public sealed class OpenAiCompatibleProvider : ITranslationProvider
     {
+        private static readonly HttpClient client = new HttpClient();
         private readonly RuntimeTranslatorSettings settings;
         private readonly string displayName;
 
@@ -49,7 +50,6 @@ namespace RuntimeTranslator
             };
 
             string url = CombineUrl(settings.OpenAiBaseUrl, "chat/completions");
-            using (HttpClient client = new HttpClient())
             using (HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, url))
             {
                 if (!string.IsNullOrWhiteSpace(settings.OpenAiApiKey))
@@ -61,10 +61,7 @@ namespace RuntimeTranslator
                 using (HttpResponseMessage response = await client.SendAsync(message, cancellationToken).ConfigureAwait(false))
                 {
                     string body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        throw new InvalidOperationException("Provider returned " + (int)response.StatusCode + ": " + body);
-                    }
+                    TranslationBatches.CheckResponse(response, body, DisplayName);
 
                     return ReadResponse(request, protectedTexts, body);
                 }
@@ -74,6 +71,8 @@ namespace RuntimeTranslator
         internal static TranslationBatchResult ReadResponse(TranslationBatchRequest request, List<ProtectedText> protectedTexts, string body)
         {
             OpenAiChoice choice = JsonHttp.Deserialize<OpenAiChatResponse>(body)?.choices?.FirstOrDefault();
+            if (string.Equals(choice?.finish_reason, "length", StringComparison.OrdinalIgnoreCase))
+                throw new TranslationRequestException("Provider output limit reached. The batch will be split when possible.") { TooLarge = true };
             if (string.Equals(choice?.finish_reason, "content_filter", StringComparison.OrdinalIgnoreCase) || !string.IsNullOrWhiteSpace(choice?.message?.refusal))
                 throw new InvalidOperationException("Provider refused or filtered the translation. Original text was kept.");
             return ParseResult(request, protectedTexts, choice?.message?.content);

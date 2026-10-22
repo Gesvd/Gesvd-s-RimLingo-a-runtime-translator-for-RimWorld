@@ -1,4 +1,4 @@
-# RimLingo v1.3.0 — Español
+# RimLingo v1.4.0 — Español
 
 Instala esta carpeta como un mod normal en RimWorld/Mods o suscríbete en Steam Workshop. Activa RimLingo y este paquete en la lista de mods. Incluye inglés ↔ español. No hace falta mover los modelos manualmente.
 

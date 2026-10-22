@@ -24,6 +24,7 @@ def main():
     preview_hashes = set()
     for folder in folders:
         manifest = json.loads((folder / 'manifest.json').read_text(encoding='utf-8'))
+        assert manifest['version'] == ET.parse(ROOT / 'RuntimeTranslator.csproj').findtext('PropertyGroup/Version')
         assert manifest['language'] == folder.name
         about = ET.parse(folder / 'About' / 'About.xml').getroot()
         assert about.findtext('packageId') == 'gesvd.rimlingo.language.' + folder.name.lower()

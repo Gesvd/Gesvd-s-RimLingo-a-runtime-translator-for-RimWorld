@@ -3,12 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 using Verse;
 
 namespace RuntimeTranslator
 {
     public static class ModTextScanner
     {
+        internal sealed class ModFiles
+        {
+            public string Name;
+            public List<string> Folders;
+        }
         private static readonly HashSet<string> SupportedFields = new HashSet<string>
         {
             "label",
@@ -21,28 +27,74 @@ namespace RuntimeTranslator
 
         public static List<TranslationEntry> Scan(RuntimeTranslatorSettings settings)
         {
-            NativeTranslations.Prepare(settings.TargetLanguage);
-            List<TranslationEntry> entries = new List<TranslationEntry>();
+            return FinishScan(CaptureSteps(settings, CancellationToken.None).Where(entry => entry != null).ToList(),
+                settings, SelectedFolders(settings), CancellationToken.None);
+        }
+
+        internal static Dictionary<string, ModFiles> SelectedFolders(RuntimeTranslatorSettings settings)
+        {
             HashSet<string> selected = new HashSet<string>(settings.SelectedPackageIds ?? new List<string>());
-            List<GlossaryTerm> terms = Glossary.ForLanguages(settings, settings.SourceLanguage, settings.TargetLanguage);
+            return LoadedModManager.RunningMods.Where(pack => IsPlayerMod(pack) && selected.Contains(pack.PackageIdPlayerFacing))
+                .GroupBy(pack => pack.PackageIdPlayerFacing).ToDictionary(group => group.Key,
+                    group => new ModFiles { Name = group.First().Name, Folders = ContentFolders(group.First()) });
+        }
+
+        // Only this iterator touches loaded game objects; null is a frame checkpoint.
+        internal static IEnumerable<TranslationEntry> CaptureSteps(RuntimeTranslatorSettings settings, CancellationToken token)
+        {
+            foreach (int step in NativeTranslations.PrepareSteps(settings.TargetLanguage, token)) yield return null;
+            HashSet<string> selected = new HashSet<string>(settings.SelectedPackageIds ?? new List<string>());
             foreach (ModContentPack pack in LoadedModManager.RunningMods)
             {
+                token.ThrowIfCancellationRequested();
                 if (!IsPlayerMod(pack) || !selected.Contains(pack.PackageIdPlayerFacing))
                 {
                     continue;
                 }
 
-                if (settings.SkipModsWithBundledChinese && BundledTranslations.HasChineseTranslation(ContentFolders(pack), settings.TargetLanguage, TranslationLifetime.Token)) continue;
-                entries.AddRange(UiText.Scan(pack, settings));
+                foreach (TranslationEntry entry in UiText.Scan(pack, settings)) yield return entry;
                 IEnumerable<Def> defs = GetDefs(pack);
                 foreach (Def def in defs)
                 {
-                    entries.AddRange(ScanDef(pack, def, settings, terms));
+                    token.ThrowIfCancellationRequested();
+                    RuntimeTextApplier.Register(pack, def);
+                    foreach (TranslationEntry entry in ScanDef(pack, def, settings)) yield return entry;
+                    yield return null;
                 }
             }
+        }
 
+        internal static List<TranslationEntry> FinishScan(List<TranslationEntry> entries, RuntimeTranslatorSettings settings,
+            Dictionary<string, ModFiles> folders, CancellationToken token)
+        {
+            HashSet<string> excluded = new HashSet<string>();
+            if (settings.SkipModsWithBundledChinese)
+                foreach (var mod in folders)
+                {
+                    token.ThrowIfCancellationRequested();
+                    if (BundledTranslations.HasTranslation(mod.Value.Folders, settings.TargetLanguage, token)) excluded.Add(mod.Key);
+                }
+            foreach (var mod in folders.Where(pair => !excluded.Contains(pair.Key)))
+            foreach (var text in BundledTranslations.KeyedSources(mod.Value.Folders, settings.SourceLanguage, token))
+            {
+                token.ThrowIfCancellationRequested();
+                if (!ShouldTranslate(text.Value)) continue;
+                string key = text.Key.Substring("Keyed|".Length);
+                entries.Add(new TranslationEntry
+                {
+                    Id = string.Join("|", mod.Key, "Keyed", key, "text", settings.SourceLanguage, settings.TargetLanguage),
+                    PackageId = mod.Key, ModName = mod.Value.Name, DefTypeName = "Keyed", DefName = key, FieldName = "text",
+                    SourceLanguage = settings.SourceLanguage, TargetLanguage = settings.TargetLanguage, SourceText = text.Value
+                });
+            }
+            List<GlossaryTerm> terms = Glossary.ForLanguages(settings, settings.SourceLanguage, settings.TargetLanguage);
+            foreach (TranslationEntry entry in entries)
+            {
+                token.ThrowIfCancellationRequested();
+                entry.SourceHash = Glossary.SourceHash(entry.SourceText, terms);
+            }
             return entries
-                .Where(entry => !NativeTranslations.Contains(entry))
+                .Where(entry => !excluded.Contains(entry.PackageId) && !NativeTranslations.Contains(entry))
                 .GroupBy(entry => entry.Id)
                 .Select(group => group.First())
                 .OrderBy(entry => entry.ModName)
@@ -102,7 +154,7 @@ namespace RuntimeTranslator
             return SelectedModFolders(settings).SelectMany(folders => folders).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
         }
 
-        private static IEnumerable<TranslationEntry> ScanDef(ModContentPack pack, Def def, RuntimeTranslatorSettings settings, List<GlossaryTerm> terms)
+        private static IEnumerable<TranslationEntry> ScanDef(ModContentPack pack, Def def, RuntimeTranslatorSettings settings)
         {
             if (def == null)
             {
@@ -110,7 +162,7 @@ namespace RuntimeTranslator
             }
 
             Type type = def.GetType();
-            foreach (FieldInfo field in type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+            foreach (FieldInfo field in RuntimeTextApplier.Fields(type))
             {
                 if (!IsSupportedField(field.Name) || field.FieldType != typeof(string))
                 {
@@ -136,7 +188,7 @@ namespace RuntimeTranslator
                     SourceLanguage = settings.SourceLanguage,
                     TargetLanguage = settings.TargetLanguage,
                     SourceText = source,
-                    SourceHash = Glossary.SourceHash(source, terms)
+                    SourceHash = null
                 };
             }
         }

@@ -13,6 +13,7 @@ import zipfile
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parent.parent
+VERSION = ET.parse(ROOT / 'RuntimeTranslator.csproj').findtext('PropertyGroup/Version')
 PACKS = ROOT / 'LanguagePacks'
 CACHE = ROOT / 'LocalEngine' / 'build-cache' / 'language-packs'
 LANGUAGES = {'ChineseSimplified': ('zh', '简体中文'), 'Japanese': ('ja', '日本語'),
@@ -88,7 +89,7 @@ def build(language, code, title, index):
         records.append({'from_code': source, 'to_code': target, 'version': item['package_version'],
                         'url': url, 'sha256': sha, 'model': model.parent.name,
                         'upstream_readme': readme.relative_to(folder).as_posix()})
-    (folder / 'manifest.json').write_text(json.dumps({'version': '1.3.0', 'language': language, 'models': records}, ensure_ascii=False, indent=2), encoding='utf-8')
+    (folder / 'manifest.json').write_text(json.dumps({'version': VERSION, 'language': language, 'models': records}, ensure_ascii=False, indent=2), encoding='utf-8')
     license_folder = folder / 'licenses'
     license_folder.mkdir(exist_ok=True)
     for name in ('CC-BY-4.0.txt', 'Argos-MIT.txt'):
@@ -104,16 +105,16 @@ def build(language, code, title, index):
     ET.SubElement(dependency, 'packageId').text = 'gesvd.rimlingo'
     ET.SubElement(dependency, 'displayName').text = 'Gesvd’s RimLingo'
     ET.SubElement(ET.SubElement(about, 'loadAfter'), 'li').text = 'gesvd.rimlingo'
-    ET.SubElement(about, 'description').text = INSTRUCTIONS[code] + '\n\nRimLingo v1.3.0 optional offline language mod. Enable after the base mod. Models are detected automatically; no manual path configuration or file copying is required. Other non-English language pairs may need both endpoint packs and use English as a pivot.'
+    ET.SubElement(about, 'description').text = INSTRUCTIONS[code] + '\n\nRimLingo v' + VERSION + ' optional offline language mod. Enable after the base mod. Models are detected automatically; no manual path configuration or file copying is required. Other non-English language pairs may need both endpoint packs and use English as a pivot.'
     (folder / 'About').mkdir(exist_ok=True)
     ET.indent(about, space='  ')
     ET.ElementTree(about).write(folder / 'About' / 'About.xml', encoding='utf-8', xml_declaration=True)
     shutil.copy2(ROOT / 'Artwork' / 'LanguagePacks' / (language + '-Preview.png'), folder / 'About' / 'Preview.png')
-    (folder / 'README.md').write_text('# RimLingo v1.3.0 — ' + title + '\n\n' + INSTRUCTIONS[code] +
+    (folder / 'README.md').write_text('# RimLingo v' + VERSION + ' — ' + title + '\n\n' + INSTRUCTIONS[code] +
         '\n\nInstall like a normal RimWorld mod: extract the ZIP into RimWorld/Mods, or subscribe on Steam Workshop after publication. Enable the base RimLingo mod and this expansion in the game mod list, with the base first. The base detects enabled expansion paths automatically, including numeric Workshop directories. No model files need to be copied into the base mod. Restart after enabling/disabling packs.\n\nSelect LibreTranslate → Use bundled offline engine. Other non-English pairs need the corresponding endpoint packs and may pivot through English, with slower or less accurate results.\n\n' +
         'Package ID: `' + package_id + '`. Model downloads and SHA-256 are recorded in manifest.json. Original model README files retain author, license and training-data attribution. The bundle omits unused Stanza/MiniSBD files and uses RimLingo’s existing sentence splitter; model weights are unchanged. Retain About/, models/, licenses/, manifest.json and this README when redistributing.\n', encoding='utf-8')
-    (folder / 'README.zh-CN.md').write_text('# RimLingo v1.3.0 — ' + title + '扩展模组\n\n像普通模组一样安装：把 ZIP 解压到游戏的 `Mods` 目录，或待作者发布后在 Steam 创意工坊订阅。在模组列表同时启用 **Gesvd的边缘翻译 / RimLingo** 和 **本语言扩展**，让基础模组排在扩展之前，然后按游戏提示重启。无需打开基础模组目录，也无需搬动模型或填写路径。\n\n在翻译服务页选择 LibreTranslate 并启用内置离线引擎，从下拉菜单选择语言。其他非英语语言之间通常经英语中转，需要启用两端语言包；基础包已含英文→简体中文。禁用扩展后对应模型不再加载。\n\n模型来源、版本和 SHA-256 见 manifest.json；原作者与许可声明见各模型 README 和 licenses/，请保留全部声明。本扩展与基础模组共享 Python，不需额外安装程序。发布到创意工坊时上传本目录（直接包含 About 和 models），不要上传 ZIP 本身或带额外父文件夹的目录。\n', encoding='utf-8')
-    output = PACKS / ('RimLingo-v1.3.0-' + language + '.zip')
+    (folder / 'README.zh-CN.md').write_text('# RimLingo v' + VERSION + ' — ' + title + '扩展模组\n\n像普通模组一样安装：把 ZIP 解压到游戏的 `Mods` 目录，或待作者发布后在 Steam 创意工坊订阅。在模组列表同时启用 **Gesvd的边缘翻译 / RimLingo** 和 **本语言扩展**，让基础模组排在扩展之前，然后按游戏提示重启。无需打开基础模组目录，也无需搬动模型或填写路径。\n\n在翻译服务页选择 LibreTranslate 并启用内置离线引擎，从下拉菜单选择语言。其他非英语语言之间通常经英语中转，需要启用两端语言包；基础包已含英文→简体中文。禁用扩展后对应模型不再加载。\n\n模型来源、版本和 SHA-256 见 manifest.json；原作者与许可声明见各模型 README 和 licenses/，请保留全部声明。本扩展与基础模组共享 Python，不需额外安装程序。发布到创意工坊时上传本目录（直接包含 About 和 models），不要上传 ZIP 本身或带额外父文件夹的目录。\n', encoding='utf-8')
+    output = PACKS / ('RimLingo-v' + VERSION + '-' + language + '.zip')
     with zipfile.ZipFile(output.with_suffix('.tmp'), 'w', zipfile.ZIP_DEFLATED, compresslevel=1) as archive:
         for path in sorted(folder.rglob('*')):
             if path.is_file():
@@ -138,7 +139,7 @@ def main():
         index_file.write_text(json.dumps(index, indent=2), encoding='utf-8')
     english = PACKS / 'English'
     english.mkdir(exist_ok=True)
-    (english / 'README.md').write_text('# English — RimLingo v1.3.0\n\nEnglish is the shared pivot language. The base mod includes English → Simplified Chinese. Other language packs include their English ↔ language models. No separate English model pack is needed. Install the desired language expansions as normal mods and enable them together with RimLingo. English needs no separate expansion mod.\n', encoding='utf-8')
+    (english / 'README.md').write_text('# English — RimLingo v' + VERSION + '\n\nEnglish is the shared pivot language. The base mod includes English → Simplified Chinese. Other language packs include their English ↔ language models. No separate English model pack is needed. Install the desired language expansions as normal mods and enable them together with RimLingo. English needs no separate expansion mod.\n', encoding='utf-8')
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
         futures = [pool.submit(build, language, code, title, index) for language, (code, title) in LANGUAGES.items() if language in selected]
         for future in concurrent.futures.as_completed(futures):

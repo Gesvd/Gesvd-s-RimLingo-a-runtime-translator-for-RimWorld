@@ -59,8 +59,10 @@ namespace RuntimeTranslator
             string pattern = TokenRegex.ToString();
             if (translations.Count > 0)
             {
-                pattern += "|(?<![\\p{L}\\p{N}_])(?<term>" + string.Join("|", translations.Keys.OrderByDescending(word => word.Length)
-                    .ThenBy(word => word, StringComparer.OrdinalIgnoreCase).Select(Regex.Escape)) + ")(?![\\p{L}\\p{N}_])";
+                pattern += "|(?<term>" + string.Join("|", translations.Keys.OrderByDescending(word => word.Length)
+                    .ThenBy(word => word, StringComparer.OrdinalIgnoreCase).Select(word =>
+                        Regex.IsMatch(word, @"[\u3400-\u9fff\u3040-\u30ff]") ? Regex.Escape(word)
+                            : "(?<![\\p{L}\\p{N}_])" + Regex.Escape(word) + "(?![\\p{L}\\p{N}_])")) + ")";
             }
             int index = 0;
             protectedText.Text = Regex.Replace(source ?? string.Empty, pattern, match =>

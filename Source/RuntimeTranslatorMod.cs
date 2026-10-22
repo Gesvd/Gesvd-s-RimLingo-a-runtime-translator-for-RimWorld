@@ -31,6 +31,10 @@ namespace RuntimeTranslator
         private string batchSizeBuffer;
         private string modFilter = string.Empty;
         private string previewSearch = string.Empty;
+        private string cachedPreviewSearch;
+        private long previewRevision = -1;
+        private List<TranslationCacheRecord> previewRecords;
+        private int previewPage;
         private string replaceFrom = string.Empty;
         private string replaceTo = string.Empty;
         private readonly HashSet<string> expandedPreviewMods = new HashSet<string>();
@@ -143,11 +147,21 @@ namespace RuntimeTranslator
 
         private void DrawPreviewTab(Rect inRect)
         {
-            List<TranslationCacheRecord> records = GetFilteredPreviewRecords().ToList();
-            Listing_Standard listing = BeginScroll(inRect, ref previewScrollPosition, GetPreviewViewHeight(inRect, records));
+            List<TranslationCacheRecord> records = GetFilteredPreviewRecords();
+            int pages = Math.Max(1, (records.Count + 49) / 50);
+            previewPage = Math.Max(0, Math.Min(previewPage, pages - 1));
+            List<TranslationCacheRecord> page = records.Skip(previewPage * 50).Take(50).ToList();
+            Listing_Standard listing = BeginScroll(inRect, ref previewScrollPosition, GetPreviewViewHeight(inRect, page));
             DrawPreviewTools(listing, records);
+            listing.Label(UiText.Get("Manual edits are protected. Unlock a translation before requesting its replacement."));
+            Rect controls = listing.GetRect(30f);
+            int previousPage = previewPage;
+            if (Widgets.ButtonText(new Rect(controls.x, controls.y, 80f, controls.height), UiText.Get("Previous"))) previewPage = Math.Max(0, previewPage - 1);
+            Widgets.Label(new Rect(controls.x + 90f, controls.y, controls.width - 180f, controls.height), UiText.Get("Page ") + (previewPage + 1) + " / " + pages + UiText.Get(" (50 entries per page)"));
+            if (Widgets.ButtonText(new Rect(controls.xMax - 80f, controls.y, 80f, controls.height), UiText.Get("Next"))) previewPage = Math.Min(pages - 1, previewPage + 1);
+            if (previewPage != previousPage) previewScrollPosition = Vector2.zero;
             listing.GapLine();
-            DrawPreviewGroups(listing, records);
+            DrawPreviewGroups(listing, page);
             EndScroll(listing);
         }
 
@@ -193,9 +207,9 @@ namespace RuntimeTranslator
             Settings.BatchSize = IntSliderLabeled(listing, UiText.Get("Batch size (next request)"), Settings.BatchSize, 1, 50, ref batchSizeBuffer);
             listing.Label(UiText.Get("Slider: 1-50. Enter a larger number manually. Very large batches may cause game stuttering or exceed the translation service limits."));
             Settings.SkipCompletedTranslations = listing.CheckboxLabeledReturn(UiText.Get("Skip completed translations (reuse valid cache)"), Settings.SkipCompletedTranslations);
-            Settings.SkipModsWithBundledChinese = listing.CheckboxLabeledReturn(UiText.Get("Skip mods with bundled Chinese translations (entire mod, even if partial)"), Settings.SkipModsWithBundledChinese);
+            Settings.SkipModsWithBundledChinese = listing.CheckboxLabeledReturn(UiText.Get("Skip mods with bundled target-language translations (entire mod, even if partial)"), Settings.SkipModsWithBundledChinese);
             listing.Label(UiText.Get("Existing target-language translations always take priority. Only missing text is translated."));
-            Settings.ApplyRuntimeTranslations = listing.CheckboxLabeledReturn(UiText.Get("Apply translations to loaded Defs"), Settings.ApplyRuntimeTranslations);
+            Settings.ApplyRuntimeTranslations = listing.CheckboxLabeledReturn(UiText.Get("Show translations at runtime"), Settings.ApplyRuntimeTranslations);
             Settings.ExportLanguageFiles = listing.CheckboxLabeledReturn(UiText.Get("Export RimWorld language files"), Settings.ExportLanguageFiles);
         }
 
@@ -385,6 +399,7 @@ namespace RuntimeTranslator
             if (previousSearch != previewSearch || previousFrom != replaceFrom || previousTo != replaceTo)
             {
                 replacedPreviewKeys.Clear();
+                if (previousSearch != previewSearch) previewPage = 0;
             }
 
             Rect buttonRect = new Rect(replaceRow.xMax - buttonWidth, replaceRow.y, buttonWidth, replaceRow.height);
@@ -445,7 +460,7 @@ namespace RuntimeTranslator
         {
             Rect row = listing.GetRect(24f);
             float leftWidth = row.width * 0.48f;
-            float metaWidth = row.width * 0.16f;
+            float metaWidth = row.width * 0.20f;
             Widgets.Label(new Rect(row.x, row.y, metaWidth, row.height), UiText.Get("Def"));
             Widgets.Label(new Rect(row.x + metaWidth + 6f, row.y, leftWidth - metaWidth - 6f, row.height), UiText.Get("Source"));
             Widgets.Label(new Rect(row.x + leftWidth + 12f, row.y, row.width - leftWidth - 12f, row.height), UiText.Get("Translation"));
@@ -455,12 +470,14 @@ namespace RuntimeTranslator
         {
             Rect row = listing.GetRect(78f);
             float leftWidth = row.width * 0.48f;
-            float metaWidth = row.width * 0.16f;
+            float metaWidth = row.width * 0.20f;
             Rect metaRect = new Rect(row.x, row.y, metaWidth, row.height);
             Rect sourceRect = new Rect(row.x + metaWidth + 6f, row.y, leftWidth - metaWidth - 6f, row.height);
             Rect translatedRect = new Rect(row.x + leftWidth + 12f, row.y, row.width - leftWidth - 12f, row.height);
 
-            Widgets.Label(metaRect, record.DefTypeName + "\n" + record.DefName + "." + record.FieldName);
+            Widgets.Label(new Rect(metaRect.x, metaRect.y, metaRect.width, 48f), record.DefTypeName + "\n" + record.DefName + "." + record.FieldName);
+            if (Widgets.ButtonText(new Rect(metaRect.x, metaRect.y + 50f, metaRect.width, 25f), UiText.Get(record.IsManual ? "Unlock translation" : "Lock translation")))
+                TranslationManager.SetManualLock(record, !record.IsManual);
             Widgets.Label(sourceRect, record.SourceText ?? string.Empty);
 
             string oldTranslation = record.TranslatedText ?? string.Empty;
@@ -473,15 +490,19 @@ namespace RuntimeTranslator
             }
         }
 
-        private IEnumerable<TranslationCacheRecord> GetFilteredPreviewRecords()
+        private List<TranslationCacheRecord> GetFilteredPreviewRecords()
         {
+            long revision = TranslationManager.CacheRevision;
+            if (previewRecords != null && previewRevision == revision && cachedPreviewSearch == previewSearch) return previewRecords;
             IEnumerable<TranslationCacheRecord> records = TranslationManager.GetCachedTranslationsSnapshot();
             if (!string.IsNullOrWhiteSpace(previewSearch))
             {
                 records = records.Where(MatchesPreviewSearch);
             }
 
-            return records.OrderBy(record => record.ModName).ThenBy(record => record.DefName).ThenBy(record => record.FieldName);
+            previewRevision = revision;
+            cachedPreviewSearch = previewSearch;
+            return previewRecords = records.OrderBy(record => record.ModName).ThenBy(record => record.DefName).ThenBy(record => record.FieldName).ToList();
         }
 
         private bool MatchesPreviewSearch(TranslationCacheRecord record)
@@ -508,7 +529,7 @@ namespace RuntimeTranslator
 
         private float GetPreviewViewHeight(Rect inRect, List<TranslationCacheRecord> records)
         {
-            float height = 150f;
+            float height = 235f;
             foreach (IGrouping<string, TranslationCacheRecord> group in records.GroupBy(PreviewModKey))
             {
                 height += 38f;
@@ -524,6 +545,7 @@ namespace RuntimeTranslator
         private void DrawTaskControls(Listing_Standard listing)
         {
             listing.Label(UiText.Get("Task"));
+            if (TranslationManager.FailedEntryCount > 0 && listing.ButtonText(UiText.Get("Retry failed entries (current provider)") + " (" + TranslationManager.FailedEntryCount + ")")) TranslationManager.RetryFailed();
             Rect row = listing.GetRect(32f);
             float width = row.width / 5f - 4f;
             if (Widgets.ButtonText(new Rect(row.x, row.y, width, row.height), UiText.Get("Start")))

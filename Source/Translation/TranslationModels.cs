@@ -59,6 +59,7 @@ namespace RuntimeTranslator
     public sealed class TranslationBatchResult
     {
         public Dictionary<string, string> Translations = new Dictionary<string, string>();
+        public Dictionary<string, string> Errors = new Dictionary<string, string>();
     }
 
     public interface ITranslationProvider
@@ -84,6 +85,7 @@ namespace RuntimeTranslator
         public string TranslatedText;
         public string Provider;
         public long UpdatedUtcTicks;
+        [System.ComponentModel.DefaultValue(false)] public bool IsManual;
 
         public static TranslationCacheRecord FromEntry(TranslationEntry entry, string provider)
         {

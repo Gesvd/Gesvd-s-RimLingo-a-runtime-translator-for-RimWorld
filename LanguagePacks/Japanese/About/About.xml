@@ -18,5 +18,5 @@
   </loadAfter>
   <description>通常のMODとして RimWorld/Mods に入れるか、Steamワークショップで購読してください。MOD一覧で RimLingo と本言語パックの両方を有効にしてください。英語と日本語の双方向モデルです。モデルファイルを手動で移動する必要はありません。
 
-RimLingo v1.3.0 optional offline language mod. Enable after the base mod. Models are detected automatically; no manual path configuration or file copying is required. Other non-English language pairs may need both endpoint packs and use English as a pivot.</description>
+RimLingo v1.4.0 optional offline language mod. Enable after the base mod. Models are detected automatically; no manual path configuration or file copying is required. Other non-English language pairs may need both endpoint packs and use English as a pivot.</description>
 </ModMetaData>

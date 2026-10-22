@@ -1,4 +1,4 @@
-# Gesvd’s RimLingo: a runtime translator for RimWorld — v1.3.0
+# Gesvd’s RimLingo: a runtime translator for RimWorld — v1.4.0
 
 ![Gesvd’s RimLingo cover](About/Preview.png)
 
@@ -8,7 +8,7 @@ Authors: Gesvd & Codex.
 
 ## 中文使用说明
 
-当前版本：**v1.3.0**。更新内容见 [CHANGELOG.md](CHANGELOG.md)。
+当前版本：**v1.4.0**。更新内容见 [CHANGELOG.md](CHANGELOG.md)。
 
 **Gesvd的边缘翻译**（英文名 Gesvd’s RimLingo）是一个在 RimWorld 游戏内运行的模组翻译器。玩家可以选择已加载的模组，通过内置离线引擎或自己配置的翻译 API 补充翻译，并用词汇库统一术语、手动修改结果。它不会在游戏启动时自动联网或开始翻译任务。
 
@@ -18,7 +18,7 @@ Authors: Gesvd & Codex.
 
 扩展包位于本项目根目录的 **`LanguagePacks/`**，按 `ChineseSimplified`、`English`、`Japanese`、`Korean`、`Russian`、`German`、`French`、`Spanish`、`Portuguese` 分文件夹。每个模型扩展附本语言的 `README.md`、中文 `README.zh-CN.md`、模型清单和许可。`English` 是中转与基础功能说明，无需独立英语模型。
 
-语言包现在是**独立扩展模组**。玩家在 Steam 创意工坊订阅后，在游戏模组列表同时启用 **RimLingo 基础模组**和所需语言扩展即可。手动安装时，像普通模组一样把 ZIP 解压到游戏的 **`Mods` 目录**，形成 `Mods/RimLingo-Language-Japanese/About/About.xml` 这样的结构，然后在模组列表启用。基础模组排在扩展之前；依赖和顺序已在扩展的 `About.xml` 中声明。无需向基础模组复制模型文件，也无需配置文件路径。语言包需配合本版 v1.3.0 基础模组使用。
+语言包现在是**独立扩展模组**。玩家在 Steam 创意工坊订阅后，在游戏模组列表同时启用 **RimLingo 基础模组**和所需语言扩展即可。手动安装时，像普通模组一样把 ZIP 解压到游戏的 **`Mods` 目录**，形成 `Mods/RimLingo-Language-Japanese/About/About.xml` 这样的结构，然后在模组列表启用。基础模组排在扩展之前；依赖和顺序已在扩展的 `About.xml` 中声明。无需向基础模组复制模型文件，也无需配置文件路径。语言包需配合本版 v1.4.0 基础模组使用。
 
 语言下拉框在离线模式只显示已启用扩展所提供且有翻译路径的选项。日语→简体中文需要日语包和基础包；中文→日语还需要中文反向包。基础包无需重新下载每一种语言模型，也不会在启动或翻译时自动联网安装。启用或禁用语言扩展后按游戏提示重启。已禁用扩展不会加载。繁体中文和源语言“自动识别”可用于相应在线服务；本批离线包不包含繁体模型，也不包含自动语种识别器。中转翻译会增加处理时间，译法可能不如直接翻译自然；同时使用更多模型也会增加内存占用。
 
@@ -30,7 +30,7 @@ DeepSeek 复用 OpenAI 兼容的 Chat Completions 协议；Claude 使用原生 M
 
 ### 安装与首次使用
 
-1. 下载完整安装包 **`Gesvds-RimLingo-v1.3.0-LibreTranslate-win64.zip`**。GitHub 的 **Code → Download ZIP** 是源码包，不含大型离线运行文件；普通玩家应使用完整安装包，无需自行编译 DLL。
+1. 下载完整安装包 **`Gesvds-RimLingo-v1.4.0-LibreTranslate-win64.zip`**。GitHub 的 **Code → Download ZIP** 是源码包，不含大型离线运行文件；普通玩家应使用完整安装包，无需自行编译 DLL。
 2. 手动安装时，将解压出来的 **`RimLingo` 文件夹**放入 RimWorld 的 `Mods` 目录。进入该文件夹后，应直接看到 `About`、`Assemblies`、`Languages` 和 `LocalEngine`，不要再多套一层目录。
 3. 在游戏模组列表中启用 **Gesvd’s RimLingo: a runtime translator for RimWorld**，按游戏提示重新加载。
 4. 打开 **选项 → 模组设置 → Gesvd的边缘翻译**。游戏使用简体中文时，会自动显示内置的官方中文界面，无需先启动机器翻译。界面分为任务、模组、翻译服务、译文预览、状态和词汇库。英文游戏界面中仍显示 Gesvd’s RimLingo。
@@ -54,22 +54,22 @@ DeepSeek 复用 OpenAI 兼容的 Chat Completions 协议；Claude 使用原生 M
 
 RimWorld 本体和官方 DLC 不会出现在可选模组中，也不会进入翻译或词汇扫描；旧设置中残留的官方内容选择会被清理。
 
-任务页默认开启 **Skip mods with bundled Chinese translations (entire mod, even if partial)**，即“跳过自带中文的整个模组”。识别当前有效版本目录中的标准中文 Keyed/DefInjected XML，空目录、空白和 TODO 文件不会单独触发跳过；简体与繁体分别识别。
+任务页默认开启 **Skip mods with bundled target-language translations (entire mod, even if partial)**，即“跳过自带目标语言译文的整个模组”。识别当前有效版本目录中的标准 Keyed/DefInjected XML；简体、繁体及其他目标语言分别处理。空白不算有效译文，中日韩俄语会检查对应文字。即使只有部分译文也会整模组跳过，需要补缺时请关闭该选项。
 
-如果某个模组只有部分汉化，可以关闭这个选项来补齐缺失条目。**关闭整模组跳过，也不会覆盖已有译文。** 自带中文的模组仍能在模组页勾选，供词汇库导入使用。
+如果某个模组只有部分汉化，可以关闭这个选项来补齐缺失条目。**关闭整模组跳过，也不会覆盖已有译文。** 自带译文的模组仍能在模组页勾选，供词汇库导入使用。
 
-另一个默认开启的选项 **Skip completed translations (reuse valid cache)** 用于复用已完成的有效缓存，减少重复请求。关闭后会重新翻译未受自带译文保护的条目，并可能替换已有自动或手动缓存结果。
+另一个默认开启的选项 **Skip completed translations (reuse valid cache)** 用于复用已完成的有效缓存，减少重复请求。关闭后会重新翻译未受自带译文保护的条目，并可能替换已有自动缓存；受保护的人工译文仍会保留。
 
 ### 扫描、导入和维护词汇库
 
 词汇库用于统一 `pawn`、武器、建筑等词语的译法。默认已有 `pawn` / `pawns` → “小人”，玩家可以修改。建议先整理词汇库，再开始正文翻译。
 
-- **扫描常见英文词**：选好模组，进入 `Glossary` 页，点击 **Scan selected mods (English candidates)**。它扫描模组英文文件，过滤常见介词、连词及格式变量，把至少出现两次的词加入候选。空白译法不会参与替换。
-- **导入模组自带中文术语**：源语言设为 `English` 或 `Auto`，目标设为对应的简体或繁体中文，点击 **Import glossary from selected mods with bundled Chinese translations**。此功能本地运行，不调用 API；按相同 XML 键配对英文与中文，提取短词或短语。
+- **扫描源语言术语**：选好模组与语言，进入 `Glossary` 页，点击 **Scan selected mods (source-language candidates)**。英语扫描 Def 原文与英语语言文件；其他语言读取相应语言目录。过滤常见功能词与格式变量，把至少出现两次的词加入候选。中日文只提取 2～16 字的完整短片段，不把长句任意切成词；候选需要校对。空白译法不参与替换。
+- **导入模组自带术语**：选好源语言与目标语言，点击 **Import glossary from bundled source/target translations**。此功能本地运行，不调用 API；按相同 XML 键配对两种语言，提取短词或短语。英语还能从 Def 原始标签配对；其他源语言需要模组已有对应语言文件。保留已有译法，忽略冲突。
 - **翻译缺少译法的词条**：点击 **Translate missing glossary terms (current provider)**，使用当前选择的翻译服务处理空白词条。已有译法会保留。
 - **手动维护**：搜索词条、修改译法，或使用 **Add / update term** 添加词和短语。清空译法表示停用该条规则，**Remove** 可以删除词条。
 
-- **应用术语库到已有译文**：按当前语言组合处理已加载模组中涉及已启用术语的已有缓存，不受模组勾选或词汇库搜索分页限制。使用缓存中的原文和当前术语库，通过当前翻译服务重新翻译，可能消耗 API 额度；成功后替换该原文的旧缓存版本，失败或取消时保留尚未成功条目的旧译文。可在任务页暂停、继续或取消。模组自带译文仍优先；已清空的译文、其他语言、不涉及术语的文本，以及原文已改变或模组未加载的缓存不处理。应用到游戏及导出文件遵循任务页对应的开关。手动修正过的匹配缓存也会参与，请先确认术语译法。
+- **应用术语库到已有译文**：按当前语言组合处理已加载模组中涉及已启用术语的已有缓存，不受模组勾选或词汇库搜索分页限制。使用缓存中的原文和当前术语库，通过当前翻译服务重新翻译，可能消耗 API 额度；成功后替换该原文的旧自动缓存版本，受保护的人工译文会跳过；失败或取消时保留尚未成功条目的旧译文。可在任务页暂停、继续或取消。模组自带译文仍优先；已清空的译文、其他语言、不涉及术语的文本，以及原文已改变或模组未加载的缓存不处理。应用到游戏及导出文件遵循任务页对应的开关。手动修正过的匹配缓存也会参与，请先确认术语译法。
 
 扫描会优先统计至少出现两次的连续英文短语（2–6 个有效词），较长短语优先。例如 `parasitic egg` 出现两次，则短语计数为 2，其中的 `parasitic` 和 `egg` 不再各加 2；独立出现的单词另行计数。标点、换行、介词连词及格式占位符会隔断短语。跨文件累计频次，重新扫描更新计数，但保留玩家已有的词条与译法。
 
@@ -87,9 +87,18 @@ RimWorld 本体和官方 DLC 不会出现在可选模组中，也不会进入翻
 
 退出游戏会中断请求和后台任务；已经保存的批次保留，退出前尚未保存的部分可能需要重新翻译。
 
+### v1.4.0 性能、重试与人工译文保护
+
+- 主翻译扫描按帧执行，扫描阶段也可以取消；游戏对象仍只在主线程读取，XML 与文本整理在后台进行。译文应用采用每帧约 2 ms 预算，单次游戏调用可能超时。
+- 预览每页 50 条；搜索与缓存未变化时复用筛选结果。“替换接下来 50 条”仍针对全部搜索结果，而非仅当前页。
+- 修改非空译文或批量替换后，自动标记为人工保护。点击 **Unlock translation / 解除译文保护** 后，才允许后续任务覆盖；仅解除保护不会自动发起翻译。清空译文会解除保护并恢复原文。旧版本缓存未记录人工身份，不能自动判断哪些旧记录曾由玩家修改，可在预览中手动保护。
+- 条目数是批次上限，还会兼顾约 12,000 字符的请求预算；这不等于模型的精确 token 限额。超长单条不会被截断。临时网络错误、限流和部分服务器错误最多重试两次；已识别的上下文或输出超限会拆小批次。重试仍可能消耗额度。
+- 任务页 **Retry failed entries (current provider)** 只处理上次任务中当前语言组合的失败条目，并重新核对原文和自带译文；不重跑已成功条目。失败清单仅保留在本次游戏进程内。重启后可通过普通任务的“跳过已完成译文”继续补齐。
+- 缓存继续每批安全保存，并保留备份；独立快照使写盘不占用缓存数据锁，无改动时不重写。内置离线引擎新增批量接口。
+
 ### 当前范围与验证情况
 
-目前主要处理已加载 Def 的 `label`、`description`、`jobString`、`deathMessage`、`gerund` 和 `reportString`，以及本模组自身的 Keyed 设置界面。它还不能覆盖其他模组所有硬编码界面、动态生成文本或所有 Keyed 调用。
+目前处理已加载 Def 的 `label`、`description`、`jobString`、`deathMessage`、`gerund` 和 `reportString`，以及所选模组有效语言目录中的标准 Keyed 文本。通用 Keyed 应用会检查游戏实际回退原文，避免覆盖另一个模组同名键的不同内容。嵌套 Def 字段、列表、规则包、硬编码界面和动态生成文本仍未全面覆盖。
 
 当前版本已通过编译和自动回归检查，但仍需在实际游戏及具体模组组合中验证。翻译质量需要玩家校对，内置离线引擎对被标签、术语分割的句子和英文缩写可能处理得不够自然。
 
@@ -133,9 +142,9 @@ It is intentionally idle at startup: it loads settings and cache metadata only. 
 
 Each task keeps the language, provider, glossary, skip-completed choice, and apply/export settings it had when **Start** was pressed. Changes to those settings affect the next task. The batch-size slider ranges from 1 to 50; the numeric field accepts larger positive integers. Very large batches may cause game stuttering or exceed provider request limits. This applies to both text and glossary translation. **Batch size** is live: the next batch uses the current value, including after resuming a paused task; an already-sent request keeps its original size. Manual preview edits use the current apply setting.
 
-**Skip completed translations** is enabled by default. It excludes valid completed entries from API requests and from the pending task total, while applying cached results to the game. The status shows the skipped count separately. Valid cached results can be reused across providers; the selected provider is preferred, otherwise the latest available record is used. Cleared preferred records, changed source text, and changed applicable glossary rules still need translation. Turning this option off retranslates all selected entries and can overwrite earlier automatic or manual translations.
+**Skip completed translations** is enabled by default. It excludes valid completed entries from API requests and from the pending task total, while applying cached results to the game. The status shows the skipped count separately. Valid cached results can be reused across providers; the selected provider is preferred, otherwise the latest available record is used. Cleared preferred records, changed source text, and changed applicable glossary rules still need translation. Turning this option off retranslates selected unprotected entries and can overwrite earlier automatic translations. Protected manual corrections remain intact.
 
-Runtime translations continue to apply on the main thread after the settings window is closed, up to 20 entries per frame. Original field text is retained for this game session, so restarting a task does not translate an earlier translation. Clearing a preview translation restores the original field text and allows that entry to be translated again.
+Runtime translations continue to apply on the main thread after the settings window is closed, using a roughly 2 ms time budget per frame and a 200-entry safety cap. Original field text is retained for this game session, so restarting a task does not translate an earlier translation. Clearing a preview translation restores the original field text and allows that entry to be translated again.
 
 Cache saves first write a temporary file, then replace `cache.xml` while retaining the previous version as `cache.xml.bak`. A damaged or missing primary cache can load the backup. Save failures appear in the status/log and preserve the previous cache file.
 
@@ -149,7 +158,7 @@ Preview's **Replace next 50** processes each matching record once per operation,
 
 ## Translating This Mod
 
-The official Simplified Chinese UI is bundled in `Languages/ChineseSimplified/Keyed/RuntimeTranslator.xml` and follows the game language automatically. Its Chinese brand name is **Gesvd的边缘翻译**. Native translations take priority over old machine-translation caches; the mod skips its own translated UI when targeting Simplified Chinese. Other target languages can still translate its settings by selecting this mod in **Mods**. The English source table remains in `Languages/English/Keyed/RuntimeTranslator.xml`; both tables contain 140 matching keys. The package ID is `gesvd.rimlingo`; cache paths and diagnostic identifiers remain unchanged. Older self-selection and self-translation cache IDs are migrated automatically.
+The official Simplified Chinese UI is bundled in `Languages/ChineseSimplified/Keyed/RuntimeTranslator.xml` and follows the game language automatically. Its Chinese brand name is **Gesvd的边缘翻译**. Native translations take priority over old machine-translation caches; the mod skips its own translated UI when targeting Simplified Chinese. Other target languages can still translate its settings by selecting this mod in **Mods**. The English source table remains in `Languages/English/Keyed/RuntimeTranslator.xml`; both tables contain matching keys for the shipped UI. The package ID is `gesvd.rimlingo`; cache paths and diagnostic identifiers remain unchanged. Older self-selection and self-translation cache IDs are migrated automatically.
 
 ## Interrupting Work On Exit
 
@@ -166,13 +175,13 @@ Previously saved batches remain on disk, protected by temporary-file replacement
 5. Use **New word / phrase** to add terms not discovered by the scan. Existing rows can be edited or removed. Results are paged at 30 rows to keep the editor responsive.
 6. Start a translation task. The glossary is frozen with the task's settings. Edited terms cause matching source texts to be translated again on the next task; unrelated cached translations remain usable.
 
-English-to-Simplified-Chinese starts with `pawn` and `pawns` mapped to `小人`. Both entries can be changed, for example to `角色`. Other language pairs have independent terms. English source aliases and Auto use the English glossary. Automatic discovery currently supports English; other languages can use manually entered terms.
+English-to-Simplified-Chinese starts with `pawn` and `pawns` mapped to `小人`. Both entries can be changed, for example to `角色`. Other language pairs have independent terms. English source aliases and Auto use the English glossary. Discovery supports the selected source language: Latin-script languages, Russian and Korean use word/phrase candidates; Chinese and Japanese use conservative 2–16-character short fragments and require manual review. It does not provide full CJK linguistic segmentation.
 
-Discovery reads common text fields in the active mod version's `Defs` XML and leaf text in `Languages/English` XML. It excludes English stop words, formatting tokens, IDs, and non-English language files. Malformed or unreadable XML files are skipped with a log warning. Counts are for the selected files, not an exhaustive linguistic analysis; singular/plural forms are separate editable terms.
+English discovery reads common text fields in the active mod version's `Defs` XML plus English language files; other source languages read their corresponding language catalogs. Common function words, formatting tokens and technical identifiers are excluded. Malformed or unreadable XML files are skipped with a log warning. Counts are for the selected files, not an exhaustive linguistic analysis; singular/plural forms are separate editable terms.
 
 All providers protect confirmed terms as placeholders and restore the exact preferred wording. Matching ignores case, uses whole-word boundaries, and prioritizes longer phrases. Format tags and variables remain protected. A provider that damages these placeholders fails the batch rather than storing inconsistent terms. A word with several meanings uses the same preferred wording throughout the language pair; clear or remove a term if that is unsuitable.
 
-**Apply glossary to cached translations** starts a normal pausable/cancellable task using the current provider and current language pair. It retranslates affected cached original text from loaded mods with the active glossary, including manually edited matching cache entries, and may use API quota. Successful results replace obsolete cache variants for that same original; failed or cancelled items keep their previous translations. It ignores glossary search/page and mod selection, skips cleared/unrelated/other-language/native-protected entries and unloaded or changed-source cache entries, and follows the current apply/export switches.
+**Apply glossary to cached translations** starts a normal pausable/cancellable task using the current provider and current language pair. It retranslates affected cached original text from loaded mods with the active glossary, excluding protected manual corrections, and may use API quota. Successful results replace obsolete cache variants for that same original; failed or cancelled items keep their previous translations. It ignores glossary search/page and mod selection, skips cleared/unrelated/other-language/native-protected entries and unloaded or changed-source cache entries, and follows the current apply/export switches.
 
 Candidate scanning counts repeated contiguous English phrases of 2–6 non-stop words, longest first, without also counting their component-word occurrences. Independently used words still count. Frequencies are combined across XML files; punctuation, line breaks, stop words and protected formatting tokens separate phrases. Rescanning updates counts while preserving existing terms and preferred translations.
 
@@ -232,15 +241,15 @@ Expected bridge response:
 
 API keys are stored in RimWorld mod settings. For public releases, prefer a local reverse proxy or a service-specific token with low quota.
 
-## First Prototype Limits
+## Remaining Coverage Limits
 
 This first version focuses on common loaded `Def` fields such as `label`, `description`, `jobString`, `deathMessage`, `gerund`, and `reportString`.
 
-Apart from its own keyed settings interface, it does not yet patch every other mod's `Keyed` lookup or code-hardcoded UI string. Those need a second pass with targeted Harmony patches after the basic translation queue and cache are proven stable in game.
+Standard Keyed XML from selected mods is scanned and applied through the active language dictionary. Existing native translations take priority, and a different effective fallback source blocks application of a conflicting key. Nested Def fields, lists, grammar/rule packs, code-hardcoded UI and dynamically generated text are not comprehensively covered.
 
 ## Bundled offline translation
 
-Windows x64 users can select LibreTranslate and enable **Use bundled offline engine (Windows, installed language packs)**. The included engine runs independently on the local machine, uses the existing glossary and requires no API key or internet at runtime. The base includes English → ChineseSimplified. Optional LanguagePacks add English-pivot translation among Chinese, English, Japanese, Korean, Russian, German, French, Spanish and Portuguese. Language packs are standalone expansion mods: subscribe on Steam Workshop after publication, or extract a pack ZIP into RimWorld/Mods, then enable both RimLingo v1.3.0 and the expansion in the game mod list. Each pack declares its dependency and load-after order. The base discovers enabled mod roots automatically, including numeric Workshop paths; disabled expansions are not loaded. No manual copying into the base mod is needed. Offline language dropdowns show reachable installed routes; Auto and Traditional Chinese remain online-only with the provided packs. See [LocalEngine/README.md](LocalEngine/README.md) for packaging, rebuilding, logs, and [license/source obligations](LocalEngine/THIRD_PARTY_NOTICES.md).
+Windows x64 users can select LibreTranslate and enable **Use bundled offline engine (Windows, installed language packs)**. The included engine runs independently on the local machine, uses the existing glossary and requires no API key or internet at runtime. The base includes English → ChineseSimplified. Optional LanguagePacks add English-pivot translation among Chinese, English, Japanese, Korean, Russian, German, French, Spanish and Portuguese. Language packs are standalone expansion mods: subscribe on Steam Workshop after publication, or extract a pack ZIP into RimWorld/Mods, then enable both RimLingo v1.4.0 and the expansion in the game mod list. Each pack declares its dependency and load-after order. The base discovers enabled mod roots automatically, including numeric Workshop paths; disabled expansions are not loaded. No manual copying into the base mod is needed. Offline language dropdowns show reachable installed routes; Auto and Traditional Chinese remain online-only with the provided packs. See [LocalEngine/README.md](LocalEngine/README.md) for packaging, rebuilding, logs, and [license/source obligations](LocalEngine/THIRD_PARTY_NOTICES.md).
 
 ## License / 许可证
 
@@ -251,27 +260,37 @@ Windows x64 users can select LibreTranslate and enable **Use bundled offline eng
 完整范围说明见 [LICENSING.md](LICENSING.md)，GPL 全文见 [LICENSE](LICENSE)，第三方来源和模型署名见 [THIRD_PARTY_NOTICES.md](LocalEngine/THIRD_PARTY_NOTICES.md)。
 
 
-## Official content and bundled Chinese translations
+## Official content and bundled target-language translations
 
 RimWorld Core and DLC are excluded using the game's official-content flag, both from mod selection and from translation/glossary scanning. Old saved selections cannot reintroduce them.
 
-**Skip mods with bundled Chinese translations (entire mod, even if partial)** is enabled by default on the Task tab. For a Simplified/Traditional Chinese target, it skips a selected mod if the active content folders contain a matching Chinese Keyed or DefInjected XML entry with Chinese text. Empty directories, empty/TODO values and translations in inactive version folders do not trigger this check. Simplified Chinese and Traditional Chinese are checked separately. Other target languages are unaffected. Disable this option to fill missing text in mods with incomplete bundled Chinese catalogs; valid existing target-language entries remain protected. Skipped mods stay selectable so their existing translations can be imported into the glossary.
+**Skip mods with bundled target-language translations (entire mod, even if partial)** is enabled by default. It recognizes valid entries in the selected target language, using active content folders and common language-folder aliases. Empty values do not trigger skipping. Chinese, Japanese, Korean and Russian require text in the corresponding script. A partial catalog can skip the entire mod; disable this option to fill missing entries. Native field/key protection remains active either way.
 
-To reuse existing terminology, select the relevant mods on **Mods**, set English/Auto as source and the matching Chinese target, then open **Glossary** and press **Import glossary from selected mods with bundled Chinese translations**. Import runs locally without an API request. It pairs English/Chinese Keyed entries by key, and original Def labels with DefInjected `DefName.label` entries. It honors active folder precedence and never matches keys across different mods.
+To reuse existing terminology, select mods and the source/target languages, then press **Import glossary from bundled source/target translations** on Glossary. Import runs locally and pairs language catalogs by XML key within each mod. English can also pair raw Def labels with target DefInjected labels; other source languages need matching language catalogs. Active folder precedence is preserved.
 
-The importer adds short words/phrases (at most six words and 64 characters) or fills blank glossary translations. Existing defaults and manual translations are kept, and conflicting Chinese translations for the same English phrase are omitted. Imported terms remain editable/removable through the existing glossary UI. It does not infer individual word meanings from translated sentences; inherited-only labels, non-XML Strings and separate translation mods without matching source files are not imported.
+The importer adds short words/phrases (at most six words and 64 characters) or fills blank glossary translations. Existing defaults and manual translations are kept, and conflicting target translations for the same source phrase are omitted. Imported terms remain editable/removable through the existing glossary UI. It does not infer individual word meanings from translated sentences; inherited-only labels, non-XML Strings and separate translation mods without matching source files are not imported.
 
 
 ## Native translation priority and text fallback
 
-Existing target-language translations always take priority, including when **Skip mods with bundled Chinese translations** is disabled. Turning off whole-mod skipping allows missing entries to be translated; it does not authorize overwriting existing translations. Scanning and the worker exclude native entries, runtime application rejects conflicting cached/manual replacements, and export filters those entries out of its own generated files.
+Existing target-language translations always take priority, including when **Skip mods with bundled target-language translations** is disabled. Turning off whole-mod skipping allows missing entries to be translated; it does not authorize overwriting existing translations. Scanning and the worker exclude native entries, runtime application rejects conflicting cached/manual replacements, and export filters those entries out of its own generated files.
 
-For the current game language, RimLingo snapshots the game's loaded Keyed and DefInjected tables, including separate translation mods and injections on base Def classes. For a different target language it reads the active mods' matching language XML instead. These indexes are prepared when needed for a task, preview application or export, with no new scan during game startup. A game-language object change rebuilds the snapshot; installing/changing mod files still requires the normal game reload. Native priority applies to the translator's supported fields and its own Keyed UI; it does not add translation hooks to every mod's hardcoded UI.
+For the current game language, RimLingo snapshots the game's loaded Keyed and DefInjected tables, including separate translation mods and injections on base Def classes. For a different target language it reads the active mods' matching language XML instead. These indexes are prepared when needed for a task, preview application or export, with no new scan during game startup. A game-language object change rebuilds the snapshot; installing/changing mod files still requires the normal game reload. Native priority applies to the translator's supported fields and standard Keyed catalogs; it does not add translation hooks to hardcoded or dynamically generated UI.
 
 The translator keeps existing text when requests fail, results are missing, or a response contains only whitespace, zero-width format characters or empty markup. Clearing an automatic translation restores the original text rather than displaying an empty string. Explicit OpenAI-compatible `content_filter` and `message.refusal` responses fail the batch without becoming translations. Existing good translations and source text remain available. RimLingo does not perform content censorship; an external provider may still refuse or return an inaccurate nonempty translation, which cannot always be identified automatically.
 
-## v1.3.0 API providers and language packs
+## v1.4.0 API providers and language packs
 
 DeepSeek has independent base URL, model, key and rules; it uses the existing Chat Completions adapter. Claude has separate configuration and uses the native `/v1/messages` endpoint with `x-api-key` and `anthropic-version: 2023-06-01`. Its request allows 8192 output tokens; incomplete/refused responses fail without replacing existing translations. Both share glossary and JSON/placeholder validation. Default model IDs remain editable.
 
-Source and target languages are dropdowns. Offline choices reflect installed models and reachable pivot routes; online providers offer the supported common languages plus Traditional Chinese and source-only Auto. Install selected ZIPs from `LanguagePacks/` like normal RimWorld mods and enable them alongside the v1.3.0 base mod; individual language READMEs explain the layout. The base release excludes optional model weights. Additional model use increases RAM and disk usage; pivot translation can be slower and less accurate.
+Source and target languages are dropdowns. Offline choices reflect installed models and reachable pivot routes; online providers offer the supported common languages plus Traditional Chinese and source-only Auto. Install selected ZIPs from `LanguagePacks/` like normal RimWorld mods and enable them alongside the v1.4.0 base mod; individual language READMEs explain the layout. The base release excludes optional model weights. Additional model use increases RAM and disk usage; pivot translation can be slower and less accurate.
+
+## v1.4.0 performance, retries and manual corrections
+
+Scanning yields between frames and can be cancelled before requests begin. Game objects stay on the main thread; file/text processing runs in the background. Runtime application uses a roughly 2 ms frame budget with a 200-entry safety cap; an individual game call may exceed the budget. Preview pages contain 50 entries and filtered snapshots are reused until cache/search changes. Replacement still operates over the full filtered result set.
+
+Nonempty manual edits and replacements are protected automatically. Unlock a record to permit subsequent retranslation; clearing it restores the original text and makes it retryable. Older cache files did not record who edited a translation, so protect older manual work explicitly in Preview. Locks apply to the same original source text; changed mod text can be translated again. Native translations always remain protected.
+
+Requests respect both the live entry limit and an approximate 12,000-character budget, not an exact model-token estimate. A single long entry is never silently truncated. Temporary network/rate/server errors receive at most two retries; recognized context/output limits split multi-entry batches. Successful split results are accepted and saved before later parts complete. Retrying can still consume quota. Single-text external LibreTranslate and Lara endpoints are processed entry by entry; the bundled engine has a bulk endpoint with per-entry errors.
+
+Use **Retry failed entries (current provider)** for the last task's failed entries in the selected language pair. Source text and native protection are checked again. This failure list is session-only; after restarting, normal cache skipping can continue unfinished work. Glossary import and whole-mod native skipping support the selected target language, including folder aliases. CJK discovery is conservative and needs review. Standard Keyed catalogs are supported; nested Def text and hardcoded/dynamic strings remain coverage limits.

@@ -11,6 +11,7 @@ namespace RuntimeTranslator
 {
     public sealed class ClaudeProvider : ITranslationProvider
     {
+        private static readonly HttpClient client = new HttpClient();
         private readonly RuntimeTranslatorSettings settings;
         public ClaudeProvider(RuntimeTranslatorSettings settings) { this.settings = settings; }
         public string DisplayName { get { return "Claude"; } }
@@ -19,12 +20,11 @@ namespace RuntimeTranslator
         {
             List<ProtectedText> texts = request.Entries.Select(entry => TextProtection.Protect(entry.SourceText,
                 Glossary.ForLanguages(settings, request.SourceLanguage, request.TargetLanguage))).ToList();
-            using (HttpClient client = new HttpClient())
             using (HttpRequestMessage message = BuildRequest(request, texts))
             using (HttpResponseMessage response = await client.SendAsync(message, cancellationToken).ConfigureAwait(false))
             {
                 string body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                if (!response.IsSuccessStatusCode) throw new InvalidOperationException("Claude returned " + (int)response.StatusCode + ": " + body);
+                TranslationBatches.CheckResponse(response, body, DisplayName);
                 return ReadResponse(request, texts, body);
             }
         }
@@ -47,6 +47,8 @@ namespace RuntimeTranslator
         internal static TranslationBatchResult ReadResponse(TranslationBatchRequest request, List<ProtectedText> texts, string body)
         {
             ClaudeResponse response = JsonHttp.Deserialize<ClaudeResponse>(body);
+            if (response?.stop_reason == "max_tokens")
+                throw new TranslationRequestException("Claude output limit reached. The batch will be split when possible.") { TooLarge = true };
             if (response?.stop_reason != "end_turn" || response.content == null || response.content.Any(block => block == null || block.type == "refusal"))
                 throw new InvalidOperationException("Claude did not finish a complete translation (refusal, output limit or unexpected response). Original translations were kept; reduce the batch size if the output limit was reached.");
             return OpenAiCompatibleProvider.ParseResult(request, texts, string.Concat(response.content.Where(block => block.type == "text").Select(block => block.text)));

@@ -10,6 +10,7 @@ namespace RuntimeTranslator
 {
     public sealed class LaraTranslateProvider : ITranslationProvider
     {
+        private static readonly HttpClient client = new HttpClient();
         private readonly RuntimeTranslatorSettings settings;
 
         public LaraTranslateProvider(RuntimeTranslatorSettings settings)
@@ -26,7 +27,6 @@ namespace RuntimeTranslator
         {
             TranslationBatchResult result = new TranslationBatchResult();
             List<GlossaryTerm> terms = Glossary.ForLanguages(settings, request.SourceLanguage, request.TargetLanguage);
-            using (HttpClient client = new HttpClient())
             {
                 foreach (TranslationEntry entry in request.Entries)
                 {
@@ -48,10 +48,7 @@ namespace RuntimeTranslator
                         using (HttpResponseMessage response = await client.SendAsync(message, cancellationToken).ConfigureAwait(false))
                         {
                             string body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                            if (!response.IsSuccessStatusCode)
-                            {
-                                throw new InvalidOperationException("Lara Translate bridge returned " + (int)response.StatusCode + ": " + body);
-                            }
+                            TranslationBatches.CheckResponse(response, body, DisplayName);
 
                             LaraTranslateResponse laraResponse = JsonHttp.Deserialize<LaraTranslateResponse>(body);
                             string translated = PickTranslation(laraResponse);

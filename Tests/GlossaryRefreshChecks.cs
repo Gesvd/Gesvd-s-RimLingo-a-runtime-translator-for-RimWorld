@@ -96,6 +96,7 @@ namespace RuntimeTranslator.Tests
             Check(reloaded.Records.Single(record => record.Id == old.Id).TranslatedText == "寄生卵", "refreshed translations survive cache reload");
             settings.GlossaryTerms.Clear();
             TranslationManager.Start(true);
+            PerformanceChecks.FinishScan();
             Check(TranslationManager.Status.State == TranslationState.Completed && TranslationManager.Status.Total == 0,
                 "applying an empty glossary exits without requiring selected mods or making a provider request");
             Verse.LanguageDatabase.activeLanguage = null; NativeTranslations.Reset();

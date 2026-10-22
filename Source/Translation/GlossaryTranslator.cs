@@ -33,38 +33,46 @@ namespace RuntimeTranslator
         {
             List<GlossaryTerm> pending = MissingTerms(settings);
             TranslationStatus status = new TranslationStatus { State = TranslationState.Running, Total = pending.Count };
+            List<TranslationEntry> allEntries = pending.Select((term, index) => new TranslationEntry
+            {
+                Id = "glossary|" + index, SourceText = term.Source, DefName = term.Source,
+                SourceLanguage = settings.SourceLanguage, TargetLanguage = settings.TargetLanguage
+            }).ToList();
             try
             {
                 for (int offset = 0; offset < pending.Count;)
                 {
                     token.ThrowIfCancellationRequested();
-                    int count = Math.Min(Math.Max(1, batchSize()), pending.Count - offset);
+                    List<TranslationEntry> entries = TranslationBatches.Take(allEntries, offset, TranslationBatches.Size(provider, batchSize()));
+                    int count = entries.Count;
                     List<GlossaryTerm> batch = pending.GetRange(offset, count);
-                    List<TranslationEntry> entries = batch.Select((term, index) => new TranslationEntry
-                    {
-                        Id = "glossary|" + (offset + index), SourceText = term.Source, DefName = term.Source,
-                        SourceLanguage = settings.SourceLanguage, TargetLanguage = settings.TargetLanguage
-                    }).ToList();
                     offset += count;
                     try
                     {
-                        TranslationBatchResult result = await provider.TranslateBatchAsync(new TranslationBatchRequest
+                        TranslationBatchResult result = await TranslationBatches.TranslateAsync(provider, new TranslationBatchRequest
                         {
                             Entries = entries, SourceLanguage = settings.SourceLanguage, TargetLanguage = settings.TargetLanguage
-                        }, token).ConfigureAwait(false);
-                        token.ThrowIfCancellationRequested();
-                        List<GlossaryTerm> translated = new List<GlossaryTerm>();
-                        for (int i = 0; i < batch.Count; i++)
+                        }, token, partial =>
                         {
-                            if (result.Translations.TryGetValue(entries[i].Id, out string value) && !string.IsNullOrWhiteSpace(value))
+                            List<GlossaryTerm> translated = new List<GlossaryTerm>();
+                            for (int i = 0; i < batch.Count; i++)
                             {
+                                if (!partial.Translations.TryGetValue(entries[i].Id, out string value) || !TextProtection.HasVisibleText(value)) continue;
                                 batch[i].Translation = value.Trim();
                                 translated.Add(batch[i]);
                                 status.Completed++;
                             }
-                            else status.Failed++;
+                            if (translated.Count > 0) acceptBatch(translated);
+                        }).ConfigureAwait(false);
+                        token.ThrowIfCancellationRequested();
+                        for (int i = 0; i < batch.Count; i++)
+                        {
+                            if (!result.Translations.TryGetValue(entries[i].Id, out string value) || !TextProtection.HasVisibleText(value))
+                            {
+                                status.Failed++;
+                                if (result.Errors.TryGetValue(entries[i].Id, out string error)) status.LastError = error;
+                            }
                         }
-                        acceptBatch(translated);
                     }
                     catch (OperationCanceledException) when (token.IsCancellationRequested) { throw; }
                     catch (Exception ex)

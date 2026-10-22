@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Verse;
 
 namespace RuntimeTranslator
@@ -18,36 +20,68 @@ namespace RuntimeTranslator
         // Capture on the main thread. Workers/exporters only read the immutable key set.
         public static void Prepare(string target)
         {
+            foreach (int step in PrepareSteps(target, CancellationToken.None)) if (step < 0) Thread.Yield();
+        }
+
+        internal static IEnumerable<int> PrepareSteps(string target, CancellationToken token)
+        {
             string language = Glossary.LanguageKey(target);
             LoadedLanguage active = LanguageDatabase.activeLanguage;
-            lock (gate) if (languages.ContainsKey(language) && ReferenceEquals(snapshots[language], active)) return;
+            bool ready;
+            lock (gate) ready = languages.ContainsKey(language) && ReferenceEquals(snapshots[language], active);
+            if (ready) yield break;
             HashSet<string> keys = new HashSet<string>();
             Dictionary<string, string[]> hierarchy = new Dictionary<string, string[]>();
             foreach (ModContentPack pack in LoadedModManager.RunningMods.Where(pack => pack != null))
-            foreach (Type type in ModTextScanner.GetDefs(pack).Where(def => def != null).Select(def => def.GetType()).Distinct())
+            foreach (Def def in ModTextScanner.GetDefs(pack))
             {
-                List<string> names = new List<string>();
-                for (Type current = type; current != null && typeof(Def).IsAssignableFrom(current); current = current.BaseType) names.Add(current.Name);
-                hierarchy[type.Name] = names.ToArray();
+                token.ThrowIfCancellationRequested();
+                Type type = def?.GetType();
+                if (type != null && !hierarchy.ContainsKey(type.Name))
+                {
+                    List<string> names = new List<string>();
+                    for (Type current = type; current != null && typeof(Def).IsAssignableFrom(current); current = current.BaseType) names.Add(current.Name);
+                    hierarchy[type.Name] = names.ToArray();
+                }
+                yield return 0;
             }
             if (active != null && Glossary.LanguageKey(active.folderName) == language)
             {
                 foreach (var pair in active.keyedReplacements)
-                    if (TextProtection.HasVisibleText(pair.Value.value)) keys.Add("Keyed|" + pair.Key);
+                {
+                    token.ThrowIfCancellationRequested();
+                    if (!RuntimeTextApplier.IsRuntimeKey(active, pair.Key) && TextProtection.HasVisibleText(pair.Value.value)) keys.Add("Keyed|" + pair.Key);
+                    yield return 0;
+                }
                 foreach (DefInjectionPackage package in active.defInjections)
                 {
                     if (package.defType == null) continue;
                     foreach (var injection in package.injections.Values.Where(item => TextProtection.HasVisibleText(item.replacedString)))
                     {
+                        token.ThrowIfCancellationRequested();
                         keys.Add("DefInjected|" + package.defType.Name + "|" + injection.path);
                         keys.Add("DefInjected|" + package.defType.Name + "|" + injection.normalizedPath);
+                        yield return 0;
                     }
                 }
             }
             else
             {
+                List<List<string>> folders = new List<List<string>>();
                 foreach (ModContentPack pack in LoadedModManager.RunningMods.Where(pack => pack != null))
-                    keys.UnionWith(BundledTranslations.NativeKeys(ModTextScanner.ContentFolders(pack), target));
+                {
+                    token.ThrowIfCancellationRequested();
+                    folders.Add(ModTextScanner.ContentFolders(pack));
+                    yield return 0;
+                }
+                Task<HashSet<string>> reading = Task.Run(() =>
+                {
+                    HashSet<string> native = new HashSet<string>();
+                    foreach (List<string> paths in folders) native.UnionWith(BundledTranslations.NativeKeys(paths, target, token));
+                    return native;
+                }, token);
+                while (!reading.IsCompleted) { token.ThrowIfCancellationRequested(); yield return -1; }
+                keys.UnionWith(reading.GetAwaiter().GetResult());
             }
             lock (gate)
             {

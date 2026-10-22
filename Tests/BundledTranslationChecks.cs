@@ -73,11 +73,11 @@ namespace RuntimeTranslator.Tests
                 "default scan skips translated mods but keeps empty/TODO catalogs and mods with only inactive-version Chinese");
             settings.SkipModsWithBundledChinese = false;
             List<TranslationEntry> all = ModTextScanner.Scan(settings);
-            Check(all.Count == 3 && all.All(entry => !entry.PackageId.StartsWith("ludeon.") && entry.PackageId != futureDlc.PackageIdPlayerFacing),
+            Check(all.Count(entry => entry.DefTypeName != "Keyed") == 3 && all.All(entry => !entry.PackageId.StartsWith("ludeon.") && entry.PackageId != futureDlc.PackageIdPlayerFacing),
                 "turning off whole-mod skip still protects translated fields and excludes officially flagged DLC");
             settings.SkipModsWithBundledChinese = true;
             settings.TargetLanguage = "Japanese";
-            Check(ModTextScanner.Scan(settings).Count == 4, "Chinese catalogs do not skip mods when translating to Japanese");
+            Check(ModTextScanner.Scan(settings).Count(entry => entry.DefTypeName != "Keyed") == 4, "Chinese catalogs do not skip mods when translating to Japanese");
             List<GlossaryTerm> imported = BundledTranslations.ReadGlossary(folders, "English", "ChineseSimplified");
             Check(imported.Any(term => term.Source == "charge rifle" && term.Translation == "电荷步枪"), "DefInjected keys pair original Def labels with bundled Chinese labels");
             Check(imported.Any(term => term.Source == "steel" && term.Translation == "钢铁") && imported.Any(term => term.Source == "crystal" && term.Translation == "水晶"),

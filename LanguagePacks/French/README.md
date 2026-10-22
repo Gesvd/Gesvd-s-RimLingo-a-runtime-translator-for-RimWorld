@@ -1,4 +1,4 @@
-# RimLingo v1.3.0 — Français
+# RimLingo v1.4.0 — Français
 
 Installez ce dossier comme un mod normal dans RimWorld/Mods, ou abonnez-vous via le Steam Workshop. Activez RimLingo et ce pack dans la liste des mods. Modèles anglais ↔ français. Aucun déplacement manuel des modèles n’est nécessaire.
 

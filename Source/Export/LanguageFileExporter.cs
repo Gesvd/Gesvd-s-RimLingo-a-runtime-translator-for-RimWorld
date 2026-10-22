@@ -27,7 +27,12 @@ namespace RuntimeTranslator
                     .Where(record => string.Equals(record.TargetLanguage, targetLanguage, StringComparison.OrdinalIgnoreCase))
                     .Where(record => !NativeTranslations.Contains(record.ToEntry()))
                     .GroupBy(record => new { record.PackageId, record.DefTypeName, record.DefName, record.FieldName })
-                    .Select(group => group.OrderByDescending(record => record.UpdatedUtcTicks).First())
+                    .Select(group =>
+                    {
+                        string latestSource = group.OrderByDescending(record => record.UpdatedUtcTicks).First().SourceText;
+                        return group.Where(record => record.SourceText == latestSource).OrderByDescending(record => record.IsManual)
+                            .ThenByDescending(record => record.UpdatedUtcTicks).First();
+                    })
                     .GroupBy(record => record.PackageId ?? "UnknownMod"))
                 {
                     foreach (IGrouping<string, TranslationCacheRecord> typeGroup in modGroup.GroupBy(record => record.DefTypeName ?? "UnknownDef"))

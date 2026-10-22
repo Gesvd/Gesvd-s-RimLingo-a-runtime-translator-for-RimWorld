@@ -12,17 +12,32 @@ namespace RuntimeTranslator
 {
     public static class BundledTranslations
     {
-        private static string[] ChineseFolders(string language)
+        internal static string[] LanguageFolders(string language)
         {
             string key = Glossary.LanguageKey(language);
+            if (key == "en") return new[] { "English", "en" };
             if (key == "zh") return new[] { "ChineseSimplified", "Chinese", "zh", "zh-CN", "zh-Hans" };
             if (key == "zt" || key == "chinesetraditional" || key == "zh-tw" || key == "zh-hant") return new[] { "ChineseTraditional", "zh-TW", "zh-Hant" };
-            return new string[0];
+            if (key == "pt") return new[] { "Portuguese", "PortugueseBrazilian", "PortugueseBrazil", "pt", "pt-BR", "pt-PT" };
+            if (key == "es") return new[] { "Spanish", "SpanishLatin", "SpanishLatinAmerican", "es", "es-ES", "es-419" };
+            string canonical = LanguageCatalog.Canonical(language);
+            return new[] { canonical, key }.Where(name => !string.IsNullOrWhiteSpace(name) && name != "." && name != ".." && name.IndexOfAny(new[] { '/', '\\' }) < 0).Distinct().ToArray();
         }
 
-        public static bool CanImport(string source, string target) { return Glossary.LanguageKey(source) == "en" && ChineseFolders(target).Length > 0; }
+        public static bool CanImport(string source, string target)
+        { return LanguageCatalog.IsSupported(source, true) && LanguageCatalog.IsSupported(target, false) && Glossary.LanguageKey(source) != Glossary.LanguageKey(target); }
 
         private static bool HasChinese(string text) { return Regex.IsMatch(text ?? "", @"[\u3400-\u9fff]"); }
+
+        private static bool HasLanguageText(string text, string language)
+        {
+            string code = Glossary.LanguageKey(language);
+            if (code == "zh" || code == "zt") return HasChinese(text);
+            if (code == "ja") return Regex.IsMatch(text ?? "", @"[\u3040-\u30ff\u3400-\u9fff]");
+            if (code == "ko") return Regex.IsMatch(text ?? "", @"[\uac00-\ud7af\u1100-\u11ff]");
+            if (code == "ru") return Regex.IsMatch(text ?? "", @"[\u0400-\u052f]");
+            return TextProtection.HasVisibleText(text) && (text ?? "").Any(char.IsLetter);
+        }
 
         private static XDocument Read(string file)
         {
@@ -39,11 +54,11 @@ namespace RuntimeTranslator
         }
 
         // Folders arrive in game load priority order; the first value for a key wins.
-        private static IEnumerable<KeyValuePair<string, string>> LanguageEntries(IEnumerable<string> folders, string[] languages, CancellationToken token)
+        private static IEnumerable<KeyValuePair<string, string>> LanguageEntries(IEnumerable<string> folders, string[] languages, CancellationToken token, bool keyedOnly = false)
         {
             foreach (string folder in folders)
             foreach (string language in languages)
-            foreach (string kind in new[] { "Keyed", "DefInjected" })
+            foreach (string kind in keyedOnly ? new[] { "Keyed" } : new[] { "Keyed", "DefInjected" })
             {
                 token.ThrowIfCancellationRequested();
                 string directory = Path.Combine(folder, "Languages", language, kind);
@@ -57,38 +72,47 @@ namespace RuntimeTranslator
                     foreach (XElement element in document.Root.Elements().Where(element => !element.HasElements))
                     {
                         token.ThrowIfCancellationRequested();
-                        yield return new KeyValuePair<string, string>(prefix + element.Name.LocalName, element.Value.Trim());
+                        yield return new KeyValuePair<string, string>(prefix + element.Name.LocalName, keyedOnly ? element.Value : element.Value.Trim());
                     }
                 }
             }
         }
 
-        internal static HashSet<string> NativeKeys(IEnumerable<string> folders, string target)
+        internal static HashSet<string> NativeKeys(IEnumerable<string> folders, string target, CancellationToken token = default(CancellationToken))
         {
-            string[] languages = ChineseFolders(target);
-            if (languages.Length == 0)
-            {
-                string key = Glossary.LanguageKey(target);
-                string canonical = LanguageCatalog.Canonical(target);
-                languages = new[] { canonical, key }.Where(name => !string.IsNullOrWhiteSpace(name) && name != "." && name != ".." && name.IndexOfAny(new[] { '/', '\\' }) < 0).Distinct().ToArray();
-            }
+            string[] languages = LanguageFolders(target);
             Dictionary<string, string> entries = new Dictionary<string, string>();
-            foreach (KeyValuePair<string, string> pair in LanguageEntries(folders, languages, TranslationLifetime.Token))
+            foreach (KeyValuePair<string, string> pair in LanguageEntries(folders, languages, token))
                 if (!entries.ContainsKey(pair.Key)) entries.Add(pair.Key, pair.Value);
             return new HashSet<string>(entries.Where(pair => TextProtection.HasVisibleText(pair.Value)).Select(pair => pair.Key));
         }
 
         public static bool HasChineseTranslation(IEnumerable<string> folders, string target, CancellationToken token = default(CancellationToken))
         {
-            HashSet<string> seen = new HashSet<string>(StringComparer.Ordinal);
-            return LanguageEntries(folders, ChineseFolders(target), token).Any(pair => seen.Add(pair.Key) && HasChinese(pair.Value));
+            string code = Glossary.LanguageKey(target);
+            return (code == "zh" || code == "zt") && HasTranslation(folders, target, token);
         }
 
-        private static Dictionary<string, string> Sources(IEnumerable<string> folders, CancellationToken token)
+        public static bool HasTranslation(IEnumerable<string> folders, string target, CancellationToken token = default(CancellationToken))
+        {
+            HashSet<string> seen = new HashSet<string>(StringComparer.Ordinal);
+            return LanguageEntries(folders, LanguageFolders(target), token).Any(pair => seen.Add(pair.Key) && HasLanguageText(pair.Value, target));
+        }
+
+        internal static Dictionary<string, string> KeyedSources(IEnumerable<string> folders, string source, CancellationToken token)
         {
             Dictionary<string, string> result = new Dictionary<string, string>();
-            foreach (KeyValuePair<string, string> pair in LanguageEntries(folders, new[] { "English" }, token))
+            foreach (var pair in LanguageEntries(folders, LanguageFolders(source), token, true))
                 if (!result.ContainsKey(pair.Key)) result.Add(pair.Key, pair.Value);
+            return result;
+        }
+
+        private static Dictionary<string, string> Sources(IEnumerable<string> folders, string source, CancellationToken token)
+        {
+            Dictionary<string, string> result = new Dictionary<string, string>();
+            foreach (KeyValuePair<string, string> pair in LanguageEntries(folders, LanguageFolders(source), token))
+                if (!result.ContainsKey(pair.Key)) result.Add(pair.Key, pair.Value);
+            if (Glossary.LanguageKey(source) != "en") return result;
             foreach (string folder in folders)
             {
                 string defs = Path.Combine(folder, "Defs");
@@ -115,18 +139,18 @@ namespace RuntimeTranslator
         public static List<GlossaryTerm> ReadGlossary(IEnumerable<List<string>> mods, string source, string target, CancellationToken token = default(CancellationToken))
         {
             if (!CanImport(source, target))
-                throw new InvalidOperationException("Bundled glossary import requires English -> ChineseSimplified / ChineseTraditional.");
+                throw new InvalidOperationException("Choose different supported source and target languages for glossary import.");
             Dictionary<string, Dictionary<string, int>> candidates = new Dictionary<string, Dictionary<string, int>>(StringComparer.OrdinalIgnoreCase);
             foreach (List<string> folders in mods)
             {
                 token.ThrowIfCancellationRequested();
-                Dictionary<string, string> english = Sources(folders, token);
+                Dictionary<string, string> originals = Sources(folders, source, token);
                 HashSet<string> seen = new HashSet<string>(StringComparer.Ordinal);
-                foreach (KeyValuePair<string, string> pair in LanguageEntries(folders, ChineseFolders(target), token))
+                foreach (KeyValuePair<string, string> pair in LanguageEntries(folders, LanguageFolders(target), token))
                 {
-                    if (!seen.Add(pair.Key) || !HasChinese(pair.Value) || pair.Value.Length > 64 || !english.TryGetValue(pair.Key, out string original)) continue;
-                    if (original.Length > 64 || !Regex.IsMatch(original, @"^[A-Za-z][A-Za-z0-9' -]*$") || original.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Length > 6 ||
-                        !Glossary.CountWords(new[] { original }, token).Any() || !TextProtection.IsGlossarySource(original) || !TextProtection.IsGlossarySource(pair.Value)) continue;
+                    if (!seen.Add(pair.Key) || !HasLanguageText(pair.Value, target) || pair.Value.Length > 64 || !originals.TryGetValue(pair.Key, out string original)) continue;
+                    if (original.Length > 64 || !Regex.IsMatch(original, @"^[\p{L}\p{N}][\p{L}\p{M}\p{N}'’ -]*$") || original.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Length > 6 ||
+                        !Glossary.CountWords(new[] { original }, token, source).Any() || !TextProtection.IsGlossarySource(original) || !TextProtection.IsGlossarySource(pair.Value)) continue;
                     if (!candidates.TryGetValue(original, out Dictionary<string, int> translations)) candidates.Add(original, translations = new Dictionary<string, int>());
                     translations.TryGetValue(pair.Value, out int count);
                     translations[pair.Value] = count + 1;

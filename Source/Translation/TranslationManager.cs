@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,12 +16,21 @@ namespace RuntimeTranslator
         private static CancellationTokenSource cancellation;
         private static ManualResetEventSlim pauseGate = new ManualResetEventSlim(true);
         private static Task worker;
+        private static IEnumerator<TranslationEntry> scanSteps;
+        private static List<TranslationEntry> capturedEntries;
+        private static TaskCompletionSource<List<TranslationEntry>> scanCompletion;
         private static readonly object statusLock = new object();
         private static readonly object pendingLock = new object();
         private static readonly object cacheLock = new object();
+        private static readonly object saveLock = new object();
         private static readonly Queue<TranslationEntry> pendingApply = new Queue<TranslationEntry>();
         private static readonly Queue<Action> pendingMainThreadActions = new Queue<Action>();
         private static readonly TranslationStatus status = new TranslationStatus();
+        private static readonly Dictionary<string, TranslationEntry> failedEntries = new Dictionary<string, TranslationEntry>();
+        private static bool failuresFromGlossary;
+        public static int FailedEntryCount { get { lock (statusLock) return failedEntries.Count; } }
+
+        public static void RetryFailed() { Start(failuresFromGlossary, true); }
 
         public static TranslationStatus Status
         {
@@ -46,11 +56,12 @@ namespace RuntimeTranslator
         {
             settings = modSettings;
             NativeTranslations.Reset();
+            RuntimeTextApplier.ResetIndex();
             cache = new TranslationCacheStore();
             cache.Load();
         }
 
-        public static void Start(bool applyGlossary = false)
+        public static void Start(bool applyGlossary = false, bool retryFailed = false)
         {
             if (settings == null || TranslationLifetime.IsStopping)
             {
@@ -69,12 +80,22 @@ namespace RuntimeTranslator
                 return;
             }
 
-            if (!applyGlossary && (settings.SelectedPackageIds == null || settings.SelectedPackageIds.Count == 0))
+            if (!applyGlossary && !retryFailed && (settings.SelectedPackageIds == null || settings.SelectedPackageIds.Count == 0))
             {
                 Messages.Message(UiText.Get("Select at least one mod before starting translation."), MessageTypeDefOf.RejectInput, false);
                 return;
             }
 
+            List<TranslationEntry> retryEntries;
+            lock (statusLock) retryEntries = failedEntries.Values.Where(entry => Glossary.LanguageKey(entry.SourceLanguage) == Glossary.LanguageKey(settings.SourceLanguage) &&
+                Glossary.LanguageKey(entry.TargetLanguage) == Glossary.LanguageKey(settings.TargetLanguage)).ToList();
+            if (retryFailed && retryEntries.Count == 0)
+            {
+                Messages.Message(UiText.Get("No failed translations for this language pair."), MessageTypeDefOf.RejectInput, false);
+                return;
+            }
+            scanSteps?.Dispose();
+            scanSteps = null;
             cancellation?.Dispose();
             cancellation = CancellationTokenSource.CreateLinkedTokenSource(TranslationLifetime.Token);
             pauseGate.Set();
@@ -83,26 +104,52 @@ namespace RuntimeTranslator
             try
             {
                 RuntimeTranslatorSettings taskSettings = settings.Snapshot();
-                List<TranslationEntry> scanned = applyGlossary ? GlossaryRefreshEntries(taskSettings) : ModTextScanner.Scan(taskSettings);
+                RuntimeTranslatorSettings scanSettings = taskSettings.Snapshot();
+                if (retryFailed) scanSettings.SelectedPackageIds = retryEntries.Select(entry => entry.PackageId).Distinct().ToList();
                 if (applyGlossary)
                 {
                     taskSettings.SkipCompletedTranslations = false;
-                    if (scanned.Count == 0)
-                    {
-                        SetStatus(TranslationState.Completed, 0, 0, 0, "Done", string.Empty);
-                        Messages.Message(UiText.Get("No cached translations match the active glossary and language pair."), MessageTypeDefOf.RejectInput, false);
-                        return;
-                    }
+                    scanSettings.SelectedPackageIds = LoadedModManager.RunningMods.Where(ModTextScanner.IsPlayerMod).Select(pack => pack.PackageIdPlayerFacing).ToList();
+                    scanSettings.SkipModsWithBundledChinese = false;
                 }
-                SetStatus(TranslationState.Running, scanned.Count, 0, 0, "Preparing queue", string.Empty);
+                var folders = ModTextScanner.SelectedFolders(scanSettings);
+                capturedEntries = new List<TranslationEntry>();
+                scanSteps = ModTextScanner.CaptureSteps(scanSettings, cancellation.Token).GetEnumerator();
+                scanCompletion = new TaskCompletionSource<List<TranslationEntry>>(TaskCreationOptions.RunContinuationsAsynchronously);
+                Task<List<TranslationEntry>> capture = scanCompletion.Task;
                 ITranslationProvider provider = ProviderFactory.Create(taskSettings);
                 CancellationToken token = cancellation.Token;
-                // Always enter RunWorker so an early cancellation still updates the final status.
-                worker = Task.Run(() => RunWorker(scanned, provider, taskSettings, token, applyGlossary));
+                worker = Task.Run(async () =>
+                {
+                    try
+                    {
+                        List<TranslationEntry> scanned = ModTextScanner.FinishScan(await capture.ConfigureAwait(false), scanSettings, folders, token);
+                        if (applyGlossary) scanned = GlossaryRefreshEntries(taskSettings, scanned);
+                        if (retryFailed)
+                        {
+                            var originals = retryEntries.ToDictionary(entry => entry.Id, entry => entry.SourceText);
+                            scanned = scanned.Where(entry => originals.TryGetValue(entry.Id, out string original) && original == entry.SourceText).ToList();
+                            taskSettings.SkipCompletedTranslations = false;
+                        }
+                        token.ThrowIfCancellationRequested();
+                        SetStatus(TranslationState.Running, scanned.Count, 0, 0, "Preparing queue", string.Empty);
+                        await RunWorker(scanned, provider, taskSettings, token, applyGlossary).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException) when (token.IsCancellationRequested)
+                    { SetStatus(TranslationState.Cancelled, 0, 0, 0, "Cancelled", string.Empty); }
+                    catch (Exception ex)
+                    {
+                        SetStatus(TranslationState.Failed, 0, 0, 0, string.Empty, ex.Message);
+                        Log.Error("[RuntimeTranslator] Scan failed: " + ex);
+                    }
+                });
                 Messages.Message(UiText.Get("Gesvd’s RimLingo started. Preparing translation queue."), MessageTypeDefOf.TaskCompletion, false);
             }
             catch (Exception ex)
             {
+                scanSteps?.Dispose();
+                scanSteps = null;
+                scanCompletion?.TrySetException(ex);
                 SetStatus(TranslationState.Failed, 0, 0, 0, string.Empty, ex.Message);
                 Log.Error("[RuntimeTranslator] Failed to start: " + ex);
             }
@@ -111,12 +158,17 @@ namespace RuntimeTranslator
         internal static List<TranslationEntry> GlossaryRefreshEntries(RuntimeTranslatorSettings options)
         {
             NativeTranslations.Prepare(options.TargetLanguage);
-            List<GlossaryTerm> terms = Glossary.ForLanguages(options, options.SourceLanguage, options.TargetLanguage);
-            List<TranslationEntry> entries = new List<TranslationEntry>();
             RuntimeTranslatorSettings scan = options.Snapshot();
             scan.SelectedPackageIds = LoadedModManager.RunningMods.Where(ModTextScanner.IsPlayerMod).Select(pack => pack.PackageIdPlayerFacing).ToList();
             scan.SkipModsWithBundledChinese = false;
-            HashSet<string> currentSources = new HashSet<string>(ModTextScanner.Scan(scan).Select(entry =>
+            return GlossaryRefreshEntries(options, ModTextScanner.Scan(scan));
+        }
+
+        private static List<TranslationEntry> GlossaryRefreshEntries(RuntimeTranslatorSettings options, List<TranslationEntry> scanned)
+        {
+            List<GlossaryTerm> terms = Glossary.ForLanguages(options, options.SourceLanguage, options.TargetLanguage);
+            List<TranslationEntry> entries = new List<TranslationEntry>();
+            HashSet<string> currentSources = new HashSet<string>(scanned.Select(entry =>
                 string.Join("|", entry.PackageId, entry.DefTypeName, entry.DefName, entry.FieldName, entry.SourceText)));
             foreach (TranslationCacheRecord record in GetCachedTranslationsSnapshot()
                 .Where(record => Glossary.LanguageKey(record.SourceLanguage) == Glossary.LanguageKey(options.SourceLanguage) &&
@@ -160,16 +212,18 @@ namespace RuntimeTranslator
             lock (statusLock)
             {
                 if (cancellation == null || worker == null || worker.IsCompleted ||
-                    (status.State != TranslationState.Running && status.State != TranslationState.Paused)) return;
+                    (status.State != TranslationState.Running && status.State != TranslationState.Paused && status.State != TranslationState.Scanning)) return;
                 status.State = TranslationState.Cancelling;
             }
             cancellation.Cancel();
+            scanCompletion?.TrySetCanceled();
             pauseGate.Set();
         }
 
         public static void Tick()
         {
             if (TranslationLifetime.IsStopping) return;
+            AdvanceScan();
             List<Action> notifications = new List<Action>();
             lock (pendingLock)
             {
@@ -183,33 +237,73 @@ namespace RuntimeTranslator
                 if (!TranslationLifetime.IsStopping) notification();
             }
 
-            List<TranslationEntry> toApply = new List<TranslationEntry>();
-            lock (pendingLock)
+            Stopwatch timer = Stopwatch.StartNew();
+            for (int count = 0; count < 200 && timer.Elapsed.TotalMilliseconds < 2; count++)
             {
-                while (pendingApply.Count > 0 && toApply.Count < 20)
+                TranslationEntry entry;
+                lock (pendingLock)
                 {
-                    toApply.Add(pendingApply.Dequeue());
+                    if (pendingApply.Count == 0) break;
+                    entry = pendingApply.Dequeue();
+                }
+                RuntimeTextApplier.Apply(entry);
+            }
+        }
+
+        private static void AdvanceScan()
+        {
+            if (scanSteps == null) return;
+            try
+            {
+                if (cancellation.IsCancellationRequested) { scanCompletion.TrySetCanceled(); return; }
+                Stopwatch timer = Stopwatch.StartNew();
+                for (int count = 0; count < 200 && timer.Elapsed.TotalMilliseconds < 2; count++)
+                {
+                    if (!scanSteps.MoveNext()) { scanCompletion.TrySetResult(capturedEntries); return; }
+                    if (scanSteps.Current != null) capturedEntries.Add(scanSteps.Current);
+                }
+                UpdateProgress(capturedEntries.Count, 0, 0, "Scanning selected mods");
+            }
+            catch (Exception ex) { scanCompletion.TrySetException(ex); }
+            finally
+            {
+                if (scanCompletion.Task.IsCompleted)
+                {
+                    scanSteps.Dispose();
+                    scanSteps = null;
+                    capturedEntries = null;
                 }
             }
-
-            RuntimeTextApplier.ApplyMany(toApply, 20);
         }
 
         public static void SaveCache()
         {
             if (TranslationLifetime.IsStopping) return;
-            if (cache != null)
+            lock (saveLock)
             {
+                TranslationCacheStore store;
+                List<TranslationCacheRecord> snapshot;
+                long revision;
                 lock (cacheLock)
                 {
-                    if (!cache.Save())
-                    {
-                        UpdateError("Could not save translation cache. The previous file was preserved.");
-                        Notify("Gesvd’s RimLingo could not save its cache. See the log for details.", false);
-                    }
+                    store = cache;
+                    if (store == null || !store.IsDirty || TranslationLifetime.IsStopping) return;
+                    revision = store.Revision;
+                    snapshot = store.Records.Select(CloneRecord).ToList();
+                }
+                if (store.SaveSnapshot(snapshot))
+                {
+                    lock (cacheLock) store.MarkSaved(revision);
+                }
+                else
+                {
+                    UpdateError("Could not save translation cache. The previous file was preserved.");
+                    Notify("Gesvd’s RimLingo could not save its cache. See the log for details.", false);
                 }
             }
         }
+
+        public static long CacheRevision { get { lock (cacheLock) return cache?.Revision ?? -1; } }
 
         public static void ExportCurrentCache()
         {
@@ -260,6 +354,12 @@ namespace RuntimeTranslator
             }
         }
 
+        public static void SetManualLock(TranslationCacheRecord record, bool locked)
+        {
+            if (record == null || cache == null) return;
+            lock (cacheLock) cache.SetManual(record.Id, record.SourceHash, record.Provider, locked);
+        }
+
         public static int ReplaceCachedTranslationsBatch(IEnumerable<string> visibleRecordKeys, string oldText, string newText, int batchSize, ISet<string> processedKeys)
         {
             if (cache == null || string.IsNullOrEmpty(oldText) || oldText == (newText ?? string.Empty))
@@ -282,18 +382,14 @@ namespace RuntimeTranslator
                         break;
                     }
 
-                    record.TranslatedText = record.TranslatedText.Replace(oldText, newText ?? string.Empty);
-                    record.UpdatedUtcTicks = DateTime.UtcNow.Ticks;
+                    cache.TryUpdate(record.Id, record.SourceHash, record.Provider, record.TranslatedText.Replace(oldText, newText ?? string.Empty), out _);
                     processedKeys.Add(CacheRecordKey(record));
                     changed.Add(CloneRecord(record));
                     count++;
                 }
 
-                if (count > 0)
-                {
-                    SaveCache();
-                }
             }
+            if (count > 0) SaveCache();
 
             foreach (TranslationCacheRecord record in changed)
             {
@@ -317,9 +413,13 @@ namespace RuntimeTranslator
             int failed = 0;
             int skipped = 0;
             int total = scanned.Count;
+            lock (statusLock) { failedEntries.Clear(); failuresFromGlossary = applyGlossary; }
             try
             {
                 string providerName = provider.DisplayName;
+                Dictionary<Tuple<string, string>, TranslationCacheRecord> manual;
+                lock (cacheLock) manual = cache.Records.Where(record => record.IsManual).GroupBy(record => Tuple.Create(record.Id, record.SourceText))
+                    .ToDictionary(group => group.Key, group => CloneRecord(group.OrderByDescending(record => record.UpdatedUtcTicks).First()));
                 Dictionary<string, TranslationCacheRecord> completedCache = new Dictionary<string, TranslationCacheRecord>();
                 if (taskSettings.SkipCompletedTranslations)
                 {
@@ -337,6 +437,12 @@ namespace RuntimeTranslator
                 {
                     token.ThrowIfCancellationRequested();
                     if (NativeTranslations.Contains(entry)) { skipped++; continue; }
+                    if (manual.TryGetValue(Tuple.Create(entry.Id, entry.SourceText), out TranslationCacheRecord edited))
+                    {
+                        skipped++;
+                        if (taskSettings.ApplyRuntimeTranslations) QueueApply(edited.ToEntry());
+                        continue;
+                    }
                     TranslationCacheRecord cached;
                     completedCache.TryGetValue(entry.Id + "|" + entry.SourceHash, out cached);
                     if (cached != null && TextProtection.HasVisibleText(cached.TranslatedText))
@@ -356,9 +462,8 @@ namespace RuntimeTranslator
                 {
                     token.ThrowIfCancellationRequested();
                     pauseGate.Wait(token);
-                    int count = Math.Min(CurrentBatchSize, pending.Count - offset);
-                    List<TranslationEntry> batch = pending.GetRange(offset, count);
-                    offset += count;
+                    List<TranslationEntry> batch = TranslationBatches.Take(pending, offset, TranslationBatches.Size(provider, CurrentBatchSize));
+                    offset += batch.Count;
                     UpdateProgress(total, completed, failed, batch.First().DefName, skipped);
                     try
                     {
@@ -368,23 +473,29 @@ namespace RuntimeTranslator
                             SourceLanguage = taskSettings.SourceLanguage,
                             TargetLanguage = taskSettings.TargetLanguage
                         };
-                        TranslationBatchResult result = await provider.TranslateBatchAsync(request, token).ConfigureAwait(false);
-                        token.ThrowIfCancellationRequested();
-                        foreach (TranslationEntry entry in batch)
+                        TranslationBatchResult result = await TranslationBatches.TranslateAsync(provider, request, token, partial =>
                         {
-                            if (result.Translations.TryGetValue(entry.Id, out string translated) && TextProtection.HasVisibleText(translated))
+                            foreach (TranslationEntry entry in batch)
                             {
+                                if (!partial.Translations.TryGetValue(entry.Id, out string translated) || !TextProtection.HasVisibleText(translated)) continue;
                                 entry.TranslatedText = translated;
-                                lock (cacheLock)
-                                {
-                                    cache.Put(entry, providerName, applyGlossary);
-                                }
+                                bool accepted;
+                                lock (cacheLock) accepted = cache.Put(entry, providerName, applyGlossary);
+                                if (!accepted) { skipped++; total--; continue; }
                                 if (taskSettings.ApplyRuntimeTranslations) QueueApply(entry);
                                 completed++;
                             }
-                            else
+                            SaveCache();
+                            UpdateProgress(total, completed, failed, batch.First().DefName, skipped);
+                        }).ConfigureAwait(false);
+                        token.ThrowIfCancellationRequested();
+                        foreach (TranslationEntry entry in batch)
+                        {
+                            if (!result.Translations.TryGetValue(entry.Id, out string translated) || !TextProtection.HasVisibleText(translated))
                             {
                                 failed++;
+                                lock (statusLock) failedEntries[entry.Id] = entry;
+                                if (result.Errors.TryGetValue(entry.Id, out string error)) UpdateError(error);
                             }
                         }
                         SaveCache();
@@ -396,6 +507,7 @@ namespace RuntimeTranslator
                     catch (Exception ex)
                     {
                         failed += batch.Count;
+                        lock (statusLock) foreach (TranslationEntry entry in batch) failedEntries[entry.Id] = entry;
                         UpdateError(ex.Message);
                         Log.Warning("[RuntimeTranslator] Batch failed: " + ex.Message);
                     }
@@ -438,6 +550,10 @@ namespace RuntimeTranslator
         public static void Shutdown()
         {
             TranslationLifetime.Stop();
+            scanCompletion?.TrySetCanceled();
+            scanSteps?.Dispose();
+            scanSteps = null;
+            capturedEntries = null;
             BundledLibreTranslate.Stop();
             pauseGate.Set();
             lock (pendingLock)
@@ -511,6 +627,7 @@ namespace RuntimeTranslator
                 SourceText = record.SourceText,
                 TranslatedText = record.TranslatedText,
                 Provider = record.Provider,
+                IsManual = record.IsManual,
                 UpdatedUtcTicks = record.UpdatedUtcTicks
             };
         }

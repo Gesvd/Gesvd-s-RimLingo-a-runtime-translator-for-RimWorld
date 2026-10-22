@@ -65,6 +65,23 @@ def main():
                 assert output.count(token) == 1, output
             assert output.endswith('\n'), repr(output)
             print('PASS: glossary/format placeholders and paragraph whitespace preserved', flush=True)
+            batch_request = urllib.request.Request(endpoint + '/runtime-translator/translate',
+                data=json.dumps({'q': ['Hello colony.', '__RT_TOKEN_0__ needs food.\n\nSecond paragraph.'], 'source': 'en', 'target': 'zh'}).encode(),
+                headers={'Content-Type': 'application/json'})
+            with opener.open(batch_request, timeout=60) as response:
+                bulk = json.load(response)
+            assert len(bulk['translatedTexts']) == 2 and bulk['errors'] == [None, None], bulk
+            assert bulk['translatedTexts'][1].count('__RT_TOKEN_0__') == 1 and '\n\n' in bulk['translatedTexts'][1], bulk
+            print('PASS: batch endpoint preserves input order, placeholders and paragraph breaks', flush=True)
+            for invalid_query in ([], ['valid', 42], None):
+                invalid = urllib.request.Request(endpoint + '/runtime-translator/translate',
+                    data=json.dumps({'q': invalid_query, 'source': 'en', 'target': 'zh'}).encode(),
+                    headers={'Content-Type': 'application/json'})
+                try:
+                    opener.open(invalid, timeout=5)
+                    raise AssertionError('Invalid batch accepted')
+                except urllib.error.HTTPError as error:
+                    assert error.code == 400
             assert translate('__RT_TOKEN_0__') == '__RT_TOKEN_0__'
             assert translate('') == ''
             try:

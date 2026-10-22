@@ -1,10 +1,10 @@
-# RimLingo v1.3.0 语言扩展模组 / Language expansion mods
+# RimLingo v1.4.0 语言扩展模组 / Language expansion mods
 
-语言包现为独立扩展模组，保持 **v1.3.0**。
+语言包现为独立扩展模组，保持 **v1.4.0**。
 
 玩家只需：
 
-1. 安装并启用 **Gesvd的边缘翻译 / RimLingo v1.3.0** 基础模组。
+1. 安装并启用 **Gesvd的边缘翻译 / RimLingo v1.4.0** 基础模组。
 2. 在 Steam 创意工坊订阅所需语言扩展并在模组列表启用；手动安装时，像普通模组一样把对应 ZIP 解压到游戏 `Mods` 目录，再在模组列表启用。
 3. 基础模组排在语言扩展之前，按游戏提示重启。在翻译服务页启用内置 LibreTranslate，从下拉框选择语言。
 
@@ -22,4 +22,4 @@
 
 ## English
 
-Install the v1.3.0 base mod and each desired language expansion as ordinary RimWorld mods. Subscribe on Steam Workshop after publication, or extract the selected ZIP into RimWorld/Mods. Enable both the base and expansion in the mod list, base first, and restart. No model copying or path setup is required; enabled Workshop/local mod roots are discovered automatically. Disabled expansion mods are not loaded. Each pack includes About metadata, dependency/load-after declarations, a preview, native/Chinese instructions, model manifest and attribution. Publish each language folder as a separate Workshop item. Non-English pairs may pivot through English and require both endpoint packs.
+Install the v1.4.0 base mod and each desired language expansion as ordinary RimWorld mods. Subscribe on Steam Workshop after publication, or extract the selected ZIP into RimWorld/Mods. Enable both the base and expansion in the mod list, base first, and restart. No model copying or path setup is required; enabled Workshop/local mod roots are discovered automatically. Disabled expansion mods are not loaded. Each pack includes About metadata, dependency/load-after declarations, a preview, native/Chinese instructions, model manifest and attribution. Publish each language folder as a separate Workshop item. Non-English pairs may pivot through English and require both endpoint packs.

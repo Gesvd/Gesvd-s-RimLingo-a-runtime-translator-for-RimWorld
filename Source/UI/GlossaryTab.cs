@@ -30,16 +30,16 @@ namespace RuntimeTranslator
             glossaryPage = Math.Max(0, Math.Min(glossaryPage, pages - 1));
             Listing_Standard listing = BeginScroll(inRect, ref glossaryScrollPosition, 740f + Math.Min(30, terms.Count) * 34f);
             listing.Label(UiText.Get("Glossary: ") + Settings.SourceLanguage + " -> " + Settings.TargetLanguage);
-            listing.Label(UiText.Get("Scan English words in selected mods. Fill a translation to enforce it; blank means inactive. Changes affect the next translation task."));
+            listing.Label(UiText.Get("Scan terms in the selected source language. Fill a translation to enforce it; blank means inactive. Chinese/Japanese discovery uses short text fragments; review candidates before translating."));
             if (glossaryScanning) listing.Label(UiText.Get("Scanning selected mod files..."));
-            else if (listing.ButtonText(UiText.Get("Scan selected mods (English candidates)"))) StartGlossaryScan();
+            else if (listing.ButtonText(UiText.Get("Scan selected mods (source-language candidates)"))) StartGlossaryScan();
             if (glossaryTranslationCancellation != null)
             {
                 if (listing.ButtonText(UiText.Get("Cancel glossary translation"))) glossaryTranslationCancellation.Cancel();
             }
             else if (!glossaryScanning && listing.ButtonText(UiText.Get("Translate missing glossary terms (current provider)"))) StartGlossaryTranslation();
-            if (!glossaryScanning && glossaryTranslationCancellation == null && listing.ButtonText(UiText.Get("Import glossary from selected mods with bundled Chinese translations"))) StartBundledGlossaryImport();
-            listing.Label(UiText.Get("Import matches English/Chinese XML keys and short labels. Existing translations are kept; conflicting terms are omitted."));
+            if (!glossaryScanning && glossaryTranslationCancellation == null && listing.ButtonText(UiText.Get("Import glossary from bundled source/target translations"))) StartBundledGlossaryImport();
+            listing.Label(UiText.Get("Import matches source/target XML keys and short labels. Existing translations are kept; conflicting terms are omitted."));
             if (!glossaryScanning && glossaryTranslationCancellation == null && listing.ButtonText(UiText.Get("Apply glossary to cached translations")))
             {
                 WriteSettings();
@@ -140,7 +140,7 @@ namespace RuntimeTranslator
             string target = Settings.TargetLanguage;
             if (!BundledTranslations.CanImport(source, target))
             {
-                Messages.Message(UiText.Get("Bundled glossary import requires English to Simplified or Traditional Chinese."), MessageTypeDefOf.RejectInput, false);
+                Messages.Message(UiText.Get("Choose different supported source and target languages for glossary import."), MessageTypeDefOf.RejectInput, false);
                 return;
             }
             // Capture game-owned folder lists on the main thread, including mods skipped by translation.
@@ -178,11 +178,6 @@ namespace RuntimeTranslator
 
         private void StartGlossaryScan()
         {
-            if (Glossary.LanguageKey(Settings.SourceLanguage) != "en")
-            {
-                Messages.Message(UiText.Get("Automatic word discovery currently supports English / Auto sources. Other languages can use manual terms."), MessageTypeDefOf.RejectInput, false);
-                return;
-            }
             List<string> folders = ModTextScanner.SelectedContentFolders(Settings);
             if (folders.Count == 0)
             {
@@ -196,7 +191,7 @@ namespace RuntimeTranslator
             {
                 try
                 {
-                    Dictionary<string, int> counts = Glossary.ScanFiles(folders, TranslationLifetime.Token);
+                    Dictionary<string, int> counts = Glossary.ScanFiles(folders, TranslationLifetime.Token, source);
                     TranslationManager.OnMainThread(() =>
                     {
                         glossaryScanning = false;

@@ -28,7 +28,7 @@ namespace Verse
     public class LoadedLanguage
     {
         public string folderName;
-        public class KeyedReplacement { public string value; }
+        public class KeyedReplacement { public string key; public string value; public string fileSource; }
         public Dictionary<string, KeyedReplacement> keyedReplacements = new Dictionary<string, KeyedReplacement>();
         public List<DefInjectionPackage> defInjections = new List<DefInjectionPackage>();
     }
@@ -48,7 +48,15 @@ namespace Verse
         public static void Message(string text, object type, bool historical) { Count++; }
     }
     public class ModSettings { public virtual void ExposeData() { } }
-    public static class Translator { public static string Translate(this string key) { return key; } }
+    public static class Translator
+    {
+        public static readonly Dictionary<string, string> Fallbacks = new Dictionary<string, string>();
+        public static string Translate(this string key)
+        {
+            if (LanguageDatabase.activeLanguage != null && LanguageDatabase.activeLanguage.keyedReplacements.TryGetValue(key, out var value)) return value.value;
+            return Fallbacks.TryGetValue(key, out string fallback) ? fallback : key;
+        }
+    }
     public interface IExposable { void ExposeData(); }
     public enum LookMode { Value, Deep }
     public static class Scribe_Values { public static void Look<T>(ref T value, string key, T fallback) { } }
@@ -172,15 +180,16 @@ namespace RuntimeTranslator.Tests
             Check(def.label == "unchanged", "disabled runtime application does not queue cache hits");
 
             List<Verse.Def> limitedDefs = new List<Verse.Def>();
-            for (int i = 0; i < 25; i++) limitedDefs.Add(new Verse.Def { defName = "Limited" + i, label = "source " + i });
+            for (int i = 0; i < 205; i++) limitedDefs.Add(new Verse.Def { defName = "Limited" + i, label = "source " + i });
             Verse.LoadedModManager.RunningMods.Single().AllDefs.AddRange(limitedDefs);
             RuntimeTranslatorSettings limitedSettings = snapshot.Snapshot();
             limitedSettings.ApplyRuntimeTranslations = true;
             Worker(ModTextScanner.Scan(limitedSettings).Where(entry => entry.DefName.StartsWith("Limited")).ToList(), provider, limitedSettings);
             Frame();
-            Check(limitedDefs.Count(item => item.label == "translated label") == 20, "one frame applies at most 20 entries");
-            Frame();
-            Check(limitedDefs.All(item => item.label == "translated label"), "next frame drains the remaining entries");
+            int applied = limitedDefs.Count(item => item.label == "translated label");
+            Check(applied > 0 && applied <= 200, "one frame respects the application work limit");
+            for (int frame = 0; frame < 500 && limitedDefs.Any(item => item.label != "translated label"); frame++) Frame();
+            Check(limitedDefs.All(item => item.label == "translated label"), "later frames drain all remaining entries without dropping any");
 
             ProtectedText protection = TextProtection.Protect("Hi {0} [PAWN_nameDef] <b>world</b>\\n __RT_TOKEN_0__");
             Check(protection.Restore(protection.Text) == "Hi {0} [PAWN_nameDef] <b>world</b>\\n __RT_TOKEN_0__", "mixed-case variables, tags and literal marker round-trip");
@@ -283,6 +292,10 @@ namespace RuntimeTranslator.Tests
             passed += NativeTranslationChecks.Run(Path.Combine(folder, "native-translation-checks"));
             passed += GlossaryRefreshChecks.Run(Path.Combine(folder, "glossary-refresh-checks"));
             passed += LanguageAndProviderChecks.Run(Path.Combine(folder, "language-provider-checks"));
+            passed += PerformanceChecks.Run(Path.Combine(folder, "performance"));
+            passed += BatchAndManualChecks.Run(Path.Combine(folder, "batch-manual"));
+            passed += MultilingualAndKeyedChecks.Run(Path.Combine(folder, "multilingual-keyed"));
+            if (Environment.GetEnvironmentVariable("RT_TEST_HTTP") == "1") passed += ProviderHttpChecks.Run(Path.Combine(folder, "provider-http"));
             passed += SelfAndShutdownChecks.Run(Path.Combine(folder, "self-and-shutdown"));
             Console.WriteLine("Passed " + passed + " checks. Test data: " + folder);
         }
